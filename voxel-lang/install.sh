@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # VoxelScript Installer for Linux/macOS
-# Run: curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/voxelscript/main/install.sh | bash
+# Run: curl -fsSL https://raw.githubusercontent.com/qulyttvv-beep/voxelscript/main/install.sh | bash
 # Or: ./install.sh
 #
 
@@ -65,11 +65,11 @@ else
     # Download from GitHub
     echo "Downloading from GitHub..."
     if command -v git &> /dev/null; then
-        git clone --depth 1 https://github.com/YOUR_USERNAME/voxelscript.git "$INSTALL_DIR/temp"
+        git clone --depth 1 https://github.com/qulyttvv-beep/voxelscript.git "$INSTALL_DIR/temp"
         mv "$INSTALL_DIR/temp/voxel-lang"/* "$INSTALL_DIR/"
         rm -rf "$INSTALL_DIR/temp"
     elif command -v curl &> /dev/null; then
-        curl -L https://github.com/YOUR_USERNAME/voxelscript/archive/main.tar.gz | tar xz -C "$INSTALL_DIR" --strip-components=2 "voxelscript-main/voxel-lang"
+        curl -L https://github.com/qulyttvv-beep/voxelscript/archive/main.tar.gz | tar xz -C "$INSTALL_DIR" --strip-components=2 "voxelscript-main/voxel-lang"
     else
         echo -e "${RED}Error: git or curl required for installation${NC}"
         exit 1

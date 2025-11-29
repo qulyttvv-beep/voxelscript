@@ -3,7 +3,7 @@
   "displayName": "VoxelScript",
   "description": "VoxelScript programming language support - syntax highlighting, snippets, and more",
   "version": "1.0.0",
-  "publisher": "voxelscript",
+  "publisher": "qulyttvv-beep",
   "engines": {
     "vscode": "^1.80.0"
   },

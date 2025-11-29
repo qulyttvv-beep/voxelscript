@@ -35,7 +35,7 @@
 ### Windows
 
 ```powershell
-git clone https://github.com/YOUR_USERNAME/voxelscript.git
+git clone https://github.com/qulyttvv-beep/voxelscript.git
 cd voxelscript/voxel-lang
 .\install-windows.bat
 ```
@@ -48,7 +48,7 @@ After installation:
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/voxelscript.git
+git clone https://github.com/qulyttvv-beep/voxelscript.git
 cd voxelscript/voxel-lang
 chmod +x install.sh
 ./install.sh

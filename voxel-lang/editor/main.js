@@ -1,10 +1,79 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 
 let mainWindow;
+let view3DWindow = null; // Separate 3D view window
 let currentProjectPath = null;
 let fileToOpen = null; // File passed via command line (double-click .voxel)
+
+// ============================================
+// AUTO-UPDATER SETUP
+// ============================================
+function setupAutoUpdater() {
+    // Configure auto-updater
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    
+    autoUpdater.on('checking-for-update', () => {
+        sendToRenderer('update-status', 'Checking for updates...');
+    });
+    
+    autoUpdater.on('update-available', (info) => {
+        sendToRenderer('update-status', `Update available: v${info.version}`);
+        sendToRenderer('update-available', info);
+    });
+    
+    autoUpdater.on('update-not-available', () => {
+        sendToRenderer('update-status', 'You have the latest version');
+    });
+    
+    autoUpdater.on('download-progress', (progress) => {
+        sendToRenderer('update-progress', {
+            percent: progress.percent,
+            bytesPerSecond: progress.bytesPerSecond,
+            transferred: progress.transferred,
+            total: progress.total
+        });
+    });
+    
+    autoUpdater.on('update-downloaded', (info) => {
+        sendToRenderer('update-downloaded', info);
+        // Show dialog to restart
+        dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'Update Ready',
+            message: `VoxelScript v${info.version} has been downloaded.`,
+            detail: 'The update will be installed when you restart the application.',
+            buttons: ['Restart Now', 'Later']
+        }).then((result) => {
+            if (result.response === 0) {
+                autoUpdater.quitAndInstall();
+            }
+        });
+    });
+    
+    autoUpdater.on('error', (err) => {
+        sendToRenderer('update-error', err.message);
+    });
+    
+    // Check for updates on startup (after 3 seconds)
+    setTimeout(() => {
+        autoUpdater.checkForUpdates().catch(() => {});
+    }, 3000);
+    
+    // Check for updates every 30 minutes
+    setInterval(() => {
+        autoUpdater.checkForUpdates().catch(() => {});
+    }, 30 * 60 * 1000);
+}
+
+function sendToRenderer(channel, data) {
+    if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send(channel, data);
+    }
+}
 
 // Handle file association - when user double-clicks a .voxel file
 function handleFileOpen(filePath) {
@@ -119,6 +188,9 @@ app.whenReady().then(() => {
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
     createWindow();
+    
+    // Setup auto-updater after window is ready
+    setupAutoUpdater();
 });
 
 app.on('window-all-closed', () => {
@@ -284,4 +356,94 @@ ipcMain.on('window-maximize', () => {
 
 ipcMain.on('window-close', () => {
     mainWindow.close();
+});
+
+// ============================================
+// 3D VIEW WINDOW
+// ============================================
+function create3DWindow(codeContent) {
+    if (view3DWindow) {
+        view3DWindow.focus();
+        view3DWindow.webContents.send('update-code', codeContent);
+        return;
+    }
+    
+    view3DWindow = new BrowserWindow({
+        width: 1000,
+        height: 800,
+        minWidth: 600,
+        minHeight: 500,
+        backgroundColor: '#000000',
+        icon: path.join(__dirname, 'assets', 'icon.png'),
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },
+        frame: false,
+        titleBarStyle: 'hidden',
+        title: 'VoxelScript 3D View'
+    });
+    
+    view3DWindow.loadFile('view3d.html');
+    
+    view3DWindow.webContents.on('did-finish-load', () => {
+        view3DWindow.webContents.send('init-code', codeContent);
+    });
+    
+    view3DWindow.on('closed', () => {
+        view3DWindow = null;
+        if (mainWindow && mainWindow.webContents) {
+            mainWindow.webContents.send('3d-window-closed');
+        }
+    });
+}
+
+ipcMain.on('open-3d-window', (event, codeContent) => {
+    create3DWindow(codeContent);
+});
+
+ipcMain.on('close-3d-window', () => {
+    if (view3DWindow) {
+        view3DWindow.close();
+    }
+});
+
+ipcMain.on('update-3d-code', (event, codeContent) => {
+    if (view3DWindow && view3DWindow.webContents) {
+        view3DWindow.webContents.send('update-code', codeContent);
+    }
+});
+
+// 3D Window controls
+ipcMain.on('3d-window-minimize', () => {
+    if (view3DWindow) view3DWindow.minimize();
+});
+
+ipcMain.on('3d-window-maximize', () => {
+    if (view3DWindow) {
+        if (view3DWindow.isMaximized()) {
+            view3DWindow.unmaximize();
+        } else {
+            view3DWindow.maximize();
+        }
+    }
+});
+
+ipcMain.on('3d-window-close', () => {
+    if (view3DWindow) view3DWindow.close();
+});
+
+// Check for updates manually
+ipcMain.handle('check-for-updates', async () => {
+    try {
+        const result = await autoUpdater.checkForUpdates();
+        return { success: true, result };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Get current version
+ipcMain.handle('get-app-version', async () => {
+    return app.getVersion();
 });

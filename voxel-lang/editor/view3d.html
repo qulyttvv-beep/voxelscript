@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxelScript 3D View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #000000;
+            color: #00ff00;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Custom Title Bar */
+        .title-bar {
+            height: 32px;
+            background: linear-gradient(180deg, #001a00 0%, #000800 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            -webkit-app-region: drag;
+            border-bottom: 1px solid #00ff00;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .title-bar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 12px;
+            font-size: 12px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .title-bar-title::before {
+            content: '◈';
+            color: #00ffff;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .window-controls {
+            display: flex;
+            -webkit-app-region: no-drag;
+        }
+
+        .window-btn {
+            width: 46px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: #00ff00;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .window-btn:hover {
+            background: #003300;
+        }
+
+        .window-btn.close:hover {
+            background: #ff0000;
+            color: white;
+        }
+
+        /* 3D Canvas */
+        #three-canvas {
+            position: absolute;
+            top: 32px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 32px);
+            background: #000000;
+        }
+
+        /* HUD Overlay */
+        .hud-overlay {
+            position: absolute;
+            top: 42px;
+            left: 10px;
+            color: #00ff00;
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            text-shadow: 0 0 5px #00ff00;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .hud-item {
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .hud-highlight {
+            color: #00ffff;
+        }
+
+        /* Controls Help */
+        .controls-help {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: #00ff00;
+            font-size: 10px;
+            text-shadow: 0 0 5px #00ff00;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15) 0px,
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+        }
+
+        /* Vignette effect */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 49;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+        }
+
+        /* Loading */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-text {
+            color: #00ff00;
+            font-size: 14px;
+            margin-top: 20px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #001a00;
+            border-top: 2px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">INITIALIZING 3D MATRIX...</div>
+    </div>
+
+    <!-- Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-title">
+            VOXELSCRIPT 3D VIEW
+        </div>
+        <div class="window-controls">
+            <button class="window-btn" id="btn-minimize">─</button>
+            <button class="window-btn" id="btn-maximize">□</button>
+            <button class="window-btn close" id="btn-close">✕</button>
+        </div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- HUD Overlay -->
+    <div class="hud-overlay">
+        <div class="hud-item">◈ <span class="hud-highlight">VOXELSCRIPT</span> 3D VISUALIZER</div>
+        <div class="hud-item">LINES: <span id="line-count">0</span></div>
+        <div class="hud-item">FPS: <span id="fps-counter">60</span></div>
+    </div>
+
+    <!-- Controls Help -->
+    <div class="controls-help">
+        [SCROLL] Navigate Code | [DRAG] Rotate View | [ESC] Close
+    </div>
+
+    <!-- Effects -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="view3d-renderer.js"></script>
+</body>
+</html>

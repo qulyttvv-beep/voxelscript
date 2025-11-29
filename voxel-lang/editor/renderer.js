@@ -516,19 +516,19 @@ function onEditorInput() {
     }
     updateLineNumbers();
     
-    // Update 3D view with debounce
-    debouncedUpdate3DCodeCubes();
+    // Update 3D view in separate window with debounce
+    debouncedUpdate3DWindow();
 }
 
-// Debounced 3D update
+// Debounced 3D window update
 let update3DTimeout = null;
-function debouncedUpdate3DCodeCubes() {
+function debouncedUpdate3DWindow() {
     if (update3DTimeout) clearTimeout(update3DTimeout);
     update3DTimeout = setTimeout(() => {
-        if (state.show3D && typeof createCodeCubes === 'function') {
-            createCodeCubes();
+        if (state.show3D) {
+            ipcRenderer.send('update-3d-code', elements.codeEditor.value);
         }
-    }, 500);
+    }, 300);
 }
 
 function onEditorKeydown(e) {
@@ -781,12 +781,19 @@ function toggle3DView() {
     state.show3D = !state.show3D;
     
     if (state.show3D) {
-        elements.view3d.classList.remove('hidden');
-        init3DView();
+        // Open 3D view in separate window
+        const code = elements.codeEditor.value || '';
+        ipcRenderer.send('open-3d-window', code);
     } else {
-        elements.view3d.classList.add('hidden');
+        // Close 3D window
+        ipcRenderer.send('close-3d-window');
     }
 }
+
+// Listen for 3D window closed event
+ipcRenderer.on('3d-window-closed', () => {
+    state.show3D = false;
+});
 
 function init3DView() {
     if (!window.THREE) {

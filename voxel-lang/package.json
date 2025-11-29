@@ -1,0 +1,50 @@
+{
+  "name": "voxelscript",
+  "version": "1.0.0",
+  "description": "VoxelScript - The Matrix Programming Language. A simple, powerful 3D-visualized programming language.",
+  "main": "voxel.js",
+  "bin": {
+    "voxel": "./voxel.js",
+    "voxelscript": "./voxel.js"
+  },
+  "scripts": {
+    "start": "node voxel.js",
+    "repl": "node voxel.js",
+    "test": "node voxel.js examples/hello.voxel",
+    "install-global": "npm link"
+  },
+  "keywords": [
+    "programming-language",
+    "interpreter",
+    "voxel",
+    "voxelscript",
+    "matrix",
+    "3d",
+    "language",
+    "compiler",
+    "scripting"
+  ],
+  "author": "VoxelScript Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/voxelscript.git"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/voxelscript#readme",
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/voxelscript/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "voxel.js",
+    "lexer.js",
+    "parser.js",
+    "interpreter.js",
+    "bin/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ]
+}

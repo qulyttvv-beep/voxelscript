@@ -1,0 +1,255 @@
+// VoxelScript - All Features Demo
+// This showcases everything VoxelScript can do!
+
+// ========================================
+// 1. VARIABLES & DATA TYPES
+// ========================================
+
+let number = 42
+let decimal = 3.14159
+let text = "Hello, World!"
+let flag = true
+let nothing = null
+let list = [1, 2, 3, 4, 5]
+let obj = {name: "Voxel", version: 1}
+
+print "=== Data Types ==="
+print "Number: " + str(number)
+print "Decimal: " + str(decimal)
+print "String: " + text
+print "Boolean: " + str(flag)
+print "Null: " + str(nothing)
+print "Array: " + json(list)
+print "Object: " + json(obj)
+print ""
+
+// ========================================
+// 2. OPERATORS
+// ========================================
+
+print "=== Math Operators ==="
+print "10 + 5 = " + str(10 + 5)
+print "10 - 5 = " + str(10 - 5)
+print "10 * 5 = " + str(10 * 5)
+print "10 / 5 = " + str(10 / 5)
+print "10 % 3 = " + str(10 % 3)
+print "2 ** 8 = " + str(2 ** 8)
+print ""
+
+print "=== Comparison Operators ==="
+print "5 == 5: " + str(5 == 5)
+print "5 != 3: " + str(5 != 3)
+print "5 > 3: " + str(5 > 3)
+print "5 < 3: " + str(5 < 3)
+print "5 >= 5: " + str(5 >= 5)
+print "5 <= 5: " + str(5 <= 5)
+print ""
+
+print "=== Logical Operators ==="
+print "true and false: " + str(true and false)
+print "true or false: " + str(true or false)
+print "not true: " + str(not true)
+print ""
+
+// ========================================
+// 3. CONTROL FLOW
+// ========================================
+
+print "=== If/Else ==="
+let grade = 85
+
+if grade >= 90 {
+    print "A - Excellent!"
+} else if grade >= 80 {
+    print "B - Good job!"
+} else if grade >= 70 {
+    print "C - Passing"
+} else {
+    print "Need improvement"
+}
+print ""
+
+print "=== Loop (for-style) ==="
+loop i from 0 to 5 {
+    print "Loop iteration: " + str(i)
+}
+print ""
+
+print "=== While Loop ==="
+let countdown = 3
+while countdown > 0 {
+    print "T-minus " + str(countdown)
+    countdown = countdown - 1
+}
+print "Liftoff!"
+print ""
+
+print "=== Break & Continue ==="
+loop i from 0 to 10 {
+    if i == 3 {
+        continue
+    }
+    if i == 7 {
+        break
+    }
+    print "Value: " + str(i)
+}
+print ""
+
+// ========================================
+// 4. FUNCTIONS
+// ========================================
+
+print "=== Functions ==="
+
+fn sayHello(name) {
+    print "Hello, " + name + "!"
+}
+
+fn multiply(a, b) {
+    return a * b
+}
+
+fn factorial(n) {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+sayHello("Voxel")
+print "3 * 4 = " + str(multiply(3, 4))
+print "5! = " + str(factorial(5))
+print ""
+
+// Closures work too!
+fn makeCounter() {
+    let count = 0
+    fn increment() {
+        count = count + 1
+        return count
+    }
+    return increment
+}
+
+// ========================================
+// 5. ARRAYS
+// ========================================
+
+print "=== Arrays ==="
+let fruits = ["apple", "banana", "cherry"]
+print "Fruits: " + json(fruits)
+print "First fruit: " + fruits[0]
+print "Length: " + str(len(fruits))
+
+push(fruits, "date")
+print "After push: " + json(fruits)
+
+let last = pop(fruits)
+print "Popped: " + last
+print "After pop: " + json(fruits)
+
+let nums = [5, 2, 8, 1, 9]
+print "Original: " + json(nums)
+print "Sorted: " + json(sort(nums))
+print "Reversed: " + json(reverse(nums))
+print ""
+
+// ========================================
+// 6. OBJECTS
+// ========================================
+
+print "=== Objects ==="
+let person = {
+    name: "Alice",
+    age: 30,
+    city: "Wonderland"
+}
+
+print "Person: " + json(person)
+print "Name: " + person.name
+print "Age: " + str(person.age)
+
+person.email = "alice@wonder.land"
+print "With email: " + json(person)
+
+print "Keys: " + json(keys(person))
+print "Values: " + json(values(person))
+print ""
+
+// ========================================
+// 7. STRING OPERATIONS
+// ========================================
+
+print "=== Strings ==="
+let str1 = "  Hello World  "
+print "Original: '" + str1 + "'"
+print "Trimmed: '" + trim(str1) + "'"
+print "Upper: " + upper(str1)
+print "Lower: " + lower(str1)
+print "Length: " + str(len(str1))
+
+let words = split("one,two,three", ",")
+print "Split: " + json(words)
+print "Join: " + join(words, " - ")
+
+print "Includes 'World': " + str(includes(str1, "World"))
+print "Starts with '  He': " + str(startsWith(str1, "  He"))
+print ""
+
+// ========================================
+// 8. MATH FUNCTIONS
+// ========================================
+
+print "=== Math ==="
+print "abs(-5): " + str(abs(-5))
+print "floor(3.7): " + str(floor(3.7))
+print "ceil(3.2): " + str(ceil(3.2))
+print "round(3.5): " + str(round(3.5))
+print "sqrt(16): " + str(sqrt(16))
+print "pow(2, 10): " + str(pow(2, 10))
+print "min(5, 3, 8): " + str(min(5, 3, 8))
+print "max(5, 3, 8): " + str(max(5, 3, 8))
+print "sin(0): " + str(sin(0))
+print "cos(0): " + str(cos(0))
+print "PI: " + str(PI)
+print "E: " + str(E)
+print "random(): " + str(random())
+print ""
+
+// ========================================
+// 9. TYPE FUNCTIONS
+// ========================================
+
+print "=== Types ==="
+print "type(42): " + type(42)
+print "type('hi'): " + type("hi")
+print "type(true): " + type(true)
+print "type(null): " + type(null)
+print "type([1,2]): " + type([1, 2])
+print "type({a:1}): " + type({a: 1})
+
+print "isNum(42): " + str(isNum(42))
+print "isStr('hi'): " + str(isStr("hi"))
+print "isArray([1]): " + str(isArray([1]))
+print ""
+
+// ========================================
+// 10. UTILITY FUNCTIONS
+// ========================================
+
+print "=== Utilities ==="
+print "range(0, 5): " + json(range(0, 5))
+print "time(): " + str(time())
+
+let data = {x: 1, y: 2}
+print "json(): " + json(data)
+print ""
+
+// ========================================
+// FINAL MESSAGE
+// ========================================
+
+print "=========================================="
+print "VoxelScript - Simple, Powerful, Fun!"
+print "=========================================="

@@ -1,0 +1,113 @@
+// Welcome to VoxelScript!
+// This is a simple but powerful language
+
+print "Hello, VoxelScript!"
+
+// Variables are easy
+let name = "Voxel"
+let age = 1
+let cool = true
+
+print "Name: " + name
+print "Age: " + str(age)
+
+// Math works great
+let x = 10
+let y = 5
+print "x + y = " + str(x + y)
+print "x * y = " + str(x * y)
+print "x ** 2 = " + str(x ** 2)
+
+// Arrays
+let numbers = [1, 2, 3, 4, 5]
+print "Numbers: " + json(numbers)
+print "First: " + str(numbers[0])
+print "Length: " + str(len(numbers))
+
+// Objects
+let person = {name: "Alex", age: 25}
+print "Person: " + json(person)
+print "Person name: " + person.name
+
+// Functions
+fn greet(name) {
+    print "Hello, " + name + "!"
+}
+
+greet("World")
+greet("Voxel")
+
+// Function with return
+fn add(a, b) {
+    return a + b
+}
+
+let sum = add(10, 20)
+print "Sum: " + str(sum)
+
+// Conditionals
+let score = 85
+
+if score >= 90 {
+    print "Grade: A"
+} else if score >= 80 {
+    print "Grade: B"
+} else if score >= 70 {
+    print "Grade: C"
+} else {
+    print "Grade: F"
+}
+
+// Loops
+print "Counting:"
+loop i from 0 to 5 {
+    print i
+}
+
+// While loop
+let count = 3
+print "Countdown:"
+while count > 0 {
+    print count
+    count = count - 1
+}
+print "Blast off!"
+
+// Built-in functions
+print "Square root of 16: " + str(sqrt(16))
+print "Random number: " + str(random())
+print "Pi: " + str(PI)
+
+// String manipulation
+let message = "  hello world  "
+print "Trimmed: '" + trim(message) + "'"
+print "Upper: " + upper(message)
+print "Length: " + str(len(trim(message)))
+
+// Array operations
+let fruits = ["apple", "banana", "cherry"]
+push(fruits, "date")
+print "Fruits: " + json(fruits)
+
+// Factorial example
+fn factorial(n) {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+print "5! = " + str(factorial(5))
+
+// Fibonacci example
+fn fib(n) {
+    if n <= 1 {
+        return n
+    }
+    return fib(n - 1) + fib(n - 2)
+}
+
+print "Fib(10) = " + str(fib(10))
+
+print ""
+print "VoxelScript is awesome!"

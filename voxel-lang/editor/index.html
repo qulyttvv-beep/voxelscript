@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxelScript Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loading-content">
+            <div class="logo-glitch" data-text="VOXELSCRIPT">VOXELSCRIPT</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div class="loading-text">INITIALIZING NEURAL MATRIX...</div>
+        </div>
+    </div>
+
+    <!-- Matrix Rain Background -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- Scanlines Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Custom Title Bar -->
+    <div id="title-bar">
+        <div class="title-bar-left">
+            <span class="logo">⬡ VOXELSCRIPT</span>
+            <span class="version">v1.0</span>
+        </div>
+        <div class="title-bar-center">
+            <span id="current-file-title">No file open</span>
+            <span id="file-modified" class="hidden">●</span>
+        </div>
+        <div class="title-bar-right">
+            <button class="title-btn" id="btn-minimize">─</button>
+            <button class="title-btn" id="btn-maximize">□</button>
+            <button class="title-btn close" id="btn-close">✕</button>
+        </div>
+    </div>
+
+    <!-- Main Toolbar -->
+    <div id="toolbar">
+        <div class="toolbar-group">
+            <button class="tool-btn" id="btn-new" title="New File (Ctrl+N)">
+                <span class="icon">+</span> NEW
+            </button>
+            <button class="tool-btn" id="btn-open" title="Open Folder (Ctrl+Shift+O)">
+                <span class="icon">📁</span> OPEN
+            </button>
+            <button class="tool-btn" id="btn-save" title="Save (Ctrl+S)">
+                <span class="icon">💾</span> SAVE
+            </button>
+        </div>
+        <div class="toolbar-group">
+            <button class="tool-btn run" id="btn-run" title="Run Script (F5)">
+                <span class="icon">▶</span> RUN
+            </button>
+            <button class="tool-btn stop" id="btn-stop" title="Stop Script (Shift+F5)">
+                <span class="icon">■</span> STOP
+            </button>
+        </div>
+        <div class="toolbar-group">
+            <button class="tool-btn" id="btn-3d" title="Toggle 3D View (Ctrl+3)">
+                <span class="icon">🎮</span> 3D VIEW
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="main-container">
+        <!-- File Browser Panel -->
+        <div id="file-browser">
+            <div class="panel-header">
+                <span>📂 EXPLORER</span>
+                <button class="mini-btn" id="btn-refresh" title="Refresh">↻</button>
+            </div>
+            <div id="file-tree">
+                <div class="empty-state">
+                    <p>No folder open</p>
+                    <button class="action-btn" id="btn-open-folder">OPEN FOLDER</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resizer -->
+        <div class="resizer" id="resizer-left"></div>
+
+        <!-- Editor Area -->
+        <div id="editor-area">
+            <!-- 3D View - Fullscreen -->
+            <div id="view-3d" class="hidden">
+                <canvas id="three-canvas"></canvas>
+                <button id="close-3d-btn" class="close-3d-button">✕ CLOSE 3D</button>
+                <div class="view-3d-controls">
+                    <span>🎮 FULLSCREEN 3D | Scroll - Move Up/Down | Click cube to select | ESC to close</span>
+                </div>
+            </div>
+
+            <!-- Code Editor -->
+            <div id="code-editor-container">
+                <div class="editor-tabs">
+                    <div id="tabs-container"></div>
+                    <button class="mini-btn" id="btn-new-tab">+</button>
+                </div>
+                <div class="line-numbers" id="line-numbers"></div>
+                <textarea id="code-editor" spellcheck="false" placeholder="// Welcome to VoxelScript Editor
+// Open a folder or create a new file to begin
+
+// Example:
+print &quot;Hello, Hacker!&quot;
+
+let name = input(&quot;Enter your name: &quot;)
+print &quot;Welcome, &quot; + name + &quot;!&quot;
+"></textarea>
+            </div>
+        </div>
+
+        <!-- Resizer -->
+        <div class="resizer horizontal" id="resizer-bottom"></div>
+
+        <!-- Console Panel -->
+        <div id="console-panel">
+            <div class="panel-header">
+                <span>⌨ TERMINAL</span>
+                <div class="panel-actions">
+                    <button class="mini-btn" id="btn-clear-console" title="Clear">🗑</button>
+                </div>
+            </div>
+            <div id="console-output">
+                <div class="console-line system">╔══════════════════════════════════════════════════════════════╗</div>
+                <div class="console-line system">║  VOXELSCRIPT TERMINAL v1.0 - NEURAL INTERFACE ACTIVE         ║</div>
+                <div class="console-line system">╚══════════════════════════════════════════════════════════════╝</div>
+                <div class="console-line info">[SYSTEM] Ready for code execution...</div>
+            </div>
+            <div id="console-input-area">
+                <span class="prompt">voxel&gt;</span>
+                <input type="text" id="console-input" placeholder="Enter command or input...">
+            </div>
+        </div>
+    </div>
+
+    <!-- New File Modal -->
+    <div id="modal-overlay" class="hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <span>CREATE NEW FILE</span>
+                <button class="mini-btn modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="new-file-input" placeholder="filename.voxel">
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="btn-create-file">CREATE</button>
+                <button class="action-btn secondary" id="btn-cancel-modal">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>window.THREE = require('three');</script>
+    <script src="renderer.js"></script>
+</body>
+</html>

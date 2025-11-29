@@ -1,0 +1,15 @@
+{
+  "name": "voxelscript",
+  "version": "1.0.0",
+  "description": "VoxelScript - 3D Programming Language & Editor",
+  "scripts": {
+    "start": "cd voxel-lang/editor && npm start",
+    "repl": "cd voxel-lang && node voxel.js",
+    "install-deps": "cd voxel-lang/editor && npm install",
+    "build": "cd voxel-lang/editor && npm run build",
+    "build:installer": "cd voxel-lang/editor && npm run build:installer"
+  },
+  "keywords": ["voxel", "programming-language", "3d", "editor"],
+  "author": "VoxelScript Team",
+  "license": "MIT"
+}

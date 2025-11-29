@@ -1,0 +1,43 @@
+// VoxelScript Game Example - Number Guessing Game
+
+print "================================"
+print "   Number Guessing Game"
+print "================================"
+print ""
+
+// Generate random number between 1 and 100
+let secret = floor(random() * 100) + 1
+let attempts = 0
+let maxAttempts = 7
+let won = false
+
+print "I'm thinking of a number between 1 and 100."
+print "You have " + str(maxAttempts) + " attempts to guess it!"
+print ""
+
+while attempts < maxAttempts {
+    attempts = attempts + 1
+    print "Attempt " + str(attempts) + "/" + str(maxAttempts)
+    
+    let guess = num(input("Your guess: "))
+    
+    if guess == secret {
+        won = true
+        break
+    } else if guess < secret {
+        print "Too low! Try higher."
+    } else {
+        print "Too high! Try lower."
+    }
+    print ""
+}
+
+print ""
+if won {
+    print "🎉 Congratulations! You guessed it!"
+    print "The number was " + str(secret)
+    print "You got it in " + str(attempts) + " attempts!"
+} else {
+    print "😢 Game Over!"
+    print "The number was " + str(secret)
+}

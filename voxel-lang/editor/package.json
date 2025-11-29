@@ -1,0 +1,96 @@
+{
+  "name": "voxelscript",
+  "version": "1.0.0",
+  "description": "VoxelScript 3D Code Editor - The Matrix Edition",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:installer": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win portable"
+  },
+  "keywords": [
+    "voxel",
+    "voxelscript",
+    "editor",
+    "3d",
+    "programming",
+    "matrix",
+    "hacker"
+  ],
+  "author": "VoxelScript Team",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.1"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.voxelscript.editor",
+    "productName": "VoxelScript",
+    "copyright": "Copyright © 2024 VoxelScript",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!dist/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "voxel-core",
+        "filter": ["lexer.js", "parser.js", "interpreter.js", "voxel.js"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "VoxelScript-Setup-${version}.${ext}",
+      "publisherName": "VoxelScript",
+      "fileAssociations": [
+        {
+          "ext": "voxel",
+          "name": "VoxelScript File",
+          "description": "VoxelScript Source File",
+          "icon": "assets/file-icon.ico",
+          "role": "Editor"
+        },
+        {
+          "ext": "vxl",
+          "name": "VoxelScript File",
+          "description": "VoxelScript Source File",
+          "icon": "assets/file-icon.ico",
+          "role": "Editor"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "VoxelScript",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeader": "assets/installer-header.bmp",
+      "installerSidebar": "assets/installer-sidebar.bmp",
+      "license": "LICENSE.txt",
+      "runAfterFinish": true,
+      "perMachine": false,
+      "allowElevation": true,
+      "include": "installer.nsh"
+    },
+    "portable": {
+      "artifactName": "VoxelScript-Portable-${version}.${ext}"
+    }
+  }
+}

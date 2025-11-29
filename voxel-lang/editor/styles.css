@@ -1,0 +1,850 @@
+/* VoxelScript Editor - Hacker Theme Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #00ff00;
+    --primary-dark: #00cc00;
+    --primary-glow: rgba(0, 255, 0, 0.6);
+    --secondary: #00ffff;
+    --bg-dark: #000000;
+    --bg-panel: #000800;
+    --bg-input: #000500;
+    --border: #003300;
+    --text: #00ff00;
+    --text-dim: #005500;
+    --error: #ff0033;
+    --warning: #ffcc00;
+    --neon-glow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 40px #00ff00;
+}
+
+body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: 'Consolas', 'Courier New', monospace;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Loading Screen */
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.logo-glitch {
+    font-size: 48px;
+    font-weight: bold;
+    color: var(--primary);
+    text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary);
+    animation: glitch 2s infinite;
+    position: relative;
+}
+
+.logo-glitch::before,
+.logo-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.logo-glitch::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff0000;
+    animation: glitch-1 0.5s infinite;
+    clip-path: inset(0 0 50% 0);
+}
+
+.logo-glitch::after {
+    left: -2px;
+    text-shadow: 2px 0 #0000ff;
+    animation: glitch-2 0.5s infinite;
+    clip-path: inset(50% 0 0 0);
+}
+
+@keyframes glitch {
+    0%, 100% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+}
+
+@keyframes glitch-1 {
+    0%, 100% { transform: translate(0); }
+    50% { transform: translate(3px, -3px); }
+}
+
+@keyframes glitch-2 {
+    0%, 100% { transform: translate(0); }
+    50% { transform: translate(-3px, 3px); }
+}
+
+.loading-bar {
+    width: 300px;
+    height: 4px;
+    background: var(--bg-panel);
+    border: 1px solid var(--primary);
+    margin: 30px auto;
+    overflow: hidden;
+}
+
+.loading-progress {
+    height: 100%;
+    background: var(--primary);
+    box-shadow: 0 0 20px var(--primary);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.loading-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Matrix Canvas */
+#matrix-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.07;
+}
+
+/* Scanlines */
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.1) 1px,
+        rgba(0, 0, 0, 0.1) 2px
+    );
+}
+
+/* Title Bar */
+#title-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 32px;
+    background: linear-gradient(180deg, #001a00 0%, #000d00 100%);
+    border-bottom: 1px solid var(--primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    -webkit-app-region: drag;
+    box-shadow: 0 2px 10px rgba(0, 255, 0, 0.2);
+}
+
+.title-bar-left {
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    gap: 10px;
+}
+
+.logo {
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--primary);
+}
+
+.version {
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+.title-bar-center {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#current-file-title {
+    font-size: 12px;
+    color: var(--secondary);
+}
+
+#file-modified {
+    color: var(--warning);
+    font-size: 16px;
+}
+
+.title-bar-right {
+    display: flex;
+    -webkit-app-region: no-drag;
+}
+
+.title-btn {
+    width: 46px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.title-btn:hover {
+    background: rgba(0, 255, 0, 0.2);
+}
+
+.title-btn.close:hover {
+    background: var(--error);
+    color: white;
+}
+
+/* Toolbar */
+#toolbar {
+    position: fixed;
+    top: 32px;
+    left: 0;
+    right: 0;
+    height: 45px;
+    background: linear-gradient(180deg, #001500 0%, #000a00 100%);
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    gap: 20px;
+    z-index: 999;
+    box-shadow: 0 2px 15px rgba(0, 255, 0, 0.3);
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 5px;
+}
+
+.tool-btn {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tool-btn:hover {
+    background: var(--primary);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.tool-btn.run {
+    border-color: var(--secondary);
+    color: var(--secondary);
+}
+
+.tool-btn.run:hover {
+    background: var(--secondary);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.tool-btn.stop {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.tool-btn.stop:hover {
+    background: var(--error);
+    color: white;
+}
+
+.icon {
+    font-size: 12px;
+}
+
+/* Main Container */
+#main-container {
+    position: fixed;
+    top: 77px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: row;
+}
+
+/* File Browser */
+#file-browser {
+    width: 250px;
+    min-width: 150px;
+    max-width: 400px;
+    background: var(--bg-panel);
+    border-right: 2px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 12px 15px;
+    background: linear-gradient(180deg, #002200 0%, #001100 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    text-shadow: 0 0 5px var(--primary);
+}
+
+.mini-btn {
+    background: transparent;
+    border: 1px solid var(--text-dim);
+    color: var(--text-dim);
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.mini-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 0 5px var(--primary-glow);
+}
+
+#file-tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.empty-state {
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.empty-state p {
+    color: var(--text-dim);
+    margin-bottom: 15px;
+    font-size: 12px;
+}
+
+.action-btn {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: var(--primary);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.action-btn.secondary {
+    border-color: var(--text-dim);
+    color: var(--text-dim);
+}
+
+.action-btn.secondary:hover {
+    background: var(--text-dim);
+    color: var(--bg-dark);
+}
+
+.file-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.file-item:hover {
+    background: rgba(0, 255, 0, 0.1);
+    border-left-color: var(--text-dim);
+}
+
+.file-item.active {
+    background: rgba(0, 255, 0, 0.15);
+    border-left-color: var(--primary);
+}
+
+.file-item.folder {
+    color: var(--secondary);
+}
+
+.folder-children {
+    padding-left: 15px;
+}
+
+/* Resizer */
+.resizer {
+    width: 4px;
+    background: var(--border);
+    cursor: col-resize;
+    transition: background 0.2s;
+}
+
+.resizer:hover {
+    background: var(--primary);
+}
+
+.resizer.horizontal {
+    width: auto;
+    height: 4px;
+    cursor: row-resize;
+}
+
+/* Editor Area */
+#editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 3D View - Fullscreen overlay - PURE BLACK */
+#view-3d {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background: #000000;
+    box-shadow: inset 0 0 150px rgba(0, 255, 0, 0.1);
+}
+
+#view-3d.hidden {
+    display: none;
+}
+
+#three-canvas {
+    width: 100%;
+    height: 100%;
+    filter: contrast(1.1) saturate(1.2);
+}
+
+.view-3d-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid var(--primary);
+    padding: 12px 25px;
+    font-size: 12px;
+    text-shadow: var(--neon-glow);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.1);
+}
+
+.close-3d-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #ff0033;
+    color: #ff0033;
+    padding: 12px 25px;
+    font-size: 14px;
+    font-family: 'Consolas', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+    text-shadow: 0 0 10px #ff0033, 0 0 20px #ff0033;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.close-3d-button:hover {
+    background: rgba(255, 0, 51, 0.3);
+    box-shadow: 0 0 30px #ff0033, inset 0 0 20px rgba(255, 0, 51, 0.3);
+}
+
+/* 2D Terminal overlay on 3D view - DARKER */
+#terminal-3d-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 380px;
+    height: calc(100% - 80px);
+    background: rgba(0, 0, 0, 0.98);
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 40px var(--primary-glow), inset 0 0 50px rgba(0, 255, 0, 0.05);
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.terminal-3d-header {
+    padding: 12px 18px;
+    background: linear-gradient(180deg, #001500 0%, #000000 100%);
+    border-bottom: 2px solid var(--primary);
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--secondary);
+    text-shadow: 0 0 15px var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#terminal-3d-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    font-size: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+#terminal-3d-output .term-line {
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+    word-wrap: break-word;
+}
+
+#terminal-3d-output .term-line.output {
+    color: #00ff00;
+}
+
+#terminal-3d-output .term-line.error {
+    color: #ff3333;
+    text-shadow: 0 0 5px #ff0000;
+}
+
+#terminal-3d-output .term-line.input {
+    color: #00ffff;
+}
+
+#terminal-3d-output .term-line.system {
+    color: #ffff00;
+}
+
+#terminal-3d-output .term-line.success {
+    color: #00ff88;
+    text-shadow: 0 0 5px #00ff88;
+}
+
+/* Code Editor Container */
+#code-editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-input);
+    position: relative;
+}
+
+.editor-tabs {
+    display: flex;
+    background: linear-gradient(180deg, #001500 0%, #000a00 100%);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+#tabs-container {
+    display: flex;
+    flex: 1;
+}
+
+.tab {
+    padding: 8px 15px;
+    font-size: 11px;
+    cursor: pointer;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.tab:hover {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+.tab.active {
+    background: var(--bg-input);
+    border-bottom: 2px solid var(--primary);
+}
+
+.tab-close {
+    font-size: 10px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.tab-close:hover {
+    opacity: 1;
+    color: var(--error);
+}
+
+.tab-modified {
+    color: var(--warning);
+}
+
+.line-numbers {
+    position: absolute;
+    left: 0;
+    top: 35px;
+    bottom: 0;
+    width: 50px;
+    background: rgba(0, 10, 0, 0.5);
+    border-right: 1px solid var(--border);
+    padding: 15px 5px;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: right;
+    line-height: 1.5;
+    overflow: hidden;
+    user-select: none;
+}
+
+#code-editor {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    padding: 15px 15px 15px 60px;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    tab-size: 4;
+}
+
+#code-editor::placeholder {
+    color: var(--text-dim);
+}
+
+#code-editor::selection {
+    background: var(--primary);
+    color: var(--bg-dark);
+}
+
+/* Console Panel */
+#console-panel {
+    height: 200px;
+    min-height: 100px;
+    max-height: 400px;
+    background: var(--bg-panel);
+    border-top: 2px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 5px;
+}
+
+#console-output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 15px;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.console-line {
+    font-family: 'Consolas', monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.console-line.error {
+    color: var(--error);
+}
+
+.console-line.success {
+    color: var(--secondary);
+}
+
+.console-line.info {
+    color: var(--text-dim);
+}
+
+.console-line.system {
+    color: var(--primary);
+    text-shadow: 0 0 5px var(--primary-glow);
+}
+
+.console-line.output {
+    color: #aaffaa;
+}
+
+#console-input-area {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    background: rgba(0, 20, 0, 0.5);
+    border-top: 1px solid var(--border);
+}
+
+.prompt {
+    color: var(--secondary);
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+#console-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+}
+
+#console-input::placeholder {
+    color: var(--text-dim);
+}
+
+/* Modal */
+#modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#modal-overlay.hidden {
+    display: none;
+}
+
+.modal {
+    background: linear-gradient(180deg, #001a00 0%, #000d00 100%);
+    border: 2px solid var(--primary);
+    min-width: 400px;
+    box-shadow: 0 0 50px var(--primary-glow);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    text-shadow: 0 0 10px var(--primary);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 10px 15px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.modal-body input:focus {
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--text-dim);
+    border: 2px solid var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--bg-panel);
+}
+
+/* Hidden utility */
+.hidden {
+    display: none !important;
+}
+
+/* Glow effects */
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 5px var(--primary-glow); }
+    50% { box-shadow: 0 0 20px var(--primary-glow); }
+}
+
+.glow-pulse {
+    animation: glow-pulse 2s infinite;
+}

@@ -1,0 +1,136 @@
+{
+  "name": "voxelscript",
+  "displayName": "VoxelScript",
+  "description": "VoxelScript programming language support - syntax highlighting, snippets, and more",
+  "version": "1.0.0",
+  "publisher": "voxelscript",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Themes"
+  ],
+  "keywords": [
+    "voxel",
+    "voxelscript",
+    "3d",
+    "matrix",
+    "programming"
+  ],
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#000000",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:voxelscript"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "voxelscript",
+        "aliases": ["VoxelScript", "voxel", "vxl"],
+        "extensions": [".voxel", ".vxl"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/file-icon.png",
+          "dark": "./images/file-icon.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "voxelscript",
+        "scopeName": "source.voxelscript",
+        "path": "./syntaxes/voxelscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "voxelscript",
+        "path": "./snippets/voxelscript.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "VoxelScript Matrix",
+        "uiTheme": "vs-dark",
+        "path": "./themes/voxelscript-matrix-theme.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "voxelscript.run",
+        "title": "Run VoxelScript",
+        "category": "VoxelScript",
+        "icon": "$(play)"
+      },
+      {
+        "command": "voxelscript.runInEditor",
+        "title": "Open in VoxelScript Editor",
+        "category": "VoxelScript"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceLangId == voxelscript",
+          "command": "voxelscript.run",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "when": "resourceLangId == voxelscript",
+          "command": "voxelscript.run",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceLangId == voxelscript",
+          "command": "voxelscript.runInEditor",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "voxelscript.run",
+        "key": "f5",
+        "when": "resourceLangId == voxelscript"
+      }
+    ],
+    "configuration": {
+      "title": "VoxelScript",
+      "properties": {
+        "voxelscript.interpreterPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the VoxelScript interpreter (voxel.js)"
+        },
+        "voxelscript.editorPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the VoxelScript 3D Editor"
+        },
+        "voxelscript.showOutputOnRun": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically show output panel when running scripts"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "echo Compiled",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^2.22.0"
+  }
+}

@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+/**
+ * VoxelScript CLI Entry Point
+ * This allows running: voxel script.voxel
+ */
+
+const path = require('path');
+const fs = require('fs');
+
+// Find the voxel.js interpreter
+const voxelDir = path.join(__dirname, '..');
+const voxelInterpreter = path.join(voxelDir, 'voxel.js');
+
+if (!fs.existsSync(voxelInterpreter)) {
+    console.error('Error: VoxelScript interpreter not found at:', voxelInterpreter);
+    process.exit(1);
+}
+
+// Load and run the interpreter
+require(voxelInterpreter);

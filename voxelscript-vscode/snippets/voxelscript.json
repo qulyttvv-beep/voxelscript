@@ -1,0 +1,318 @@
+{
+  "Function Declaration": {
+    "prefix": ["fn", "func", "function"],
+    "body": [
+      "fn ${1:name}(${2:params}) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a new function"
+  },
+  "Arrow Function": {
+    "prefix": ["afn", "arrow"],
+    "body": [
+      "(${1:params}) => ${2:expression}"
+    ],
+    "description": "Create an arrow function"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "If statement"
+  },
+  "If-Else Statement": {
+    "prefix": "ife",
+    "body": [
+      "if ${1:condition} {",
+      "\t$2",
+      "} else {",
+      "\t$0",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "If-Elif-Else Statement": {
+    "prefix": "ifee",
+    "body": [
+      "if ${1:condition} {",
+      "\t$2",
+      "} elif ${3:condition2} {",
+      "\t$4",
+      "} else {",
+      "\t$0",
+      "}"
+    ],
+    "description": "If-elif-else statement"
+  },
+  "Loop": {
+    "prefix": "loop",
+    "body": [
+      "loop {",
+      "\t$0",
+      "\tif ${1:condition} { break }",
+      "}"
+    ],
+    "description": "Infinite loop with break condition"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:item} in ${2:collection} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "For-in loop"
+  },
+  "For Range": {
+    "prefix": "forr",
+    "body": [
+      "for ${1:i} in range(${2:0}, ${3:10}) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "For loop with range"
+  },
+  "Variable Declaration": {
+    "prefix": "let",
+    "body": [
+      "let ${1:name} = ${2:value}"
+    ],
+    "description": "Declare a variable"
+  },
+  "Constant Declaration": {
+    "prefix": "const",
+    "body": [
+      "const ${1:NAME} = ${2:value}"
+    ],
+    "description": "Declare a constant"
+  },
+  "Print": {
+    "prefix": ["print", "log"],
+    "body": [
+      "print ${1:\"$2\"}"
+    ],
+    "description": "Print to console"
+  },
+  "Print Variable": {
+    "prefix": "printv",
+    "body": [
+      "print \"${1:label}: \" + str(${2:variable})"
+    ],
+    "description": "Print a variable with label"
+  },
+  "Array": {
+    "prefix": "arr",
+    "body": [
+      "let ${1:arr} = [${2:items}]"
+    ],
+    "description": "Create an array"
+  },
+  "Object": {
+    "prefix": "obj",
+    "body": [
+      "let ${1:obj} = {",
+      "\t\"${2:key}\": ${3:value}$0",
+      "}"
+    ],
+    "description": "Create an object"
+  },
+  "Map Function": {
+    "prefix": "map",
+    "body": [
+      "map(${1:array}, (${2:item}) => ${3:expression})"
+    ],
+    "description": "Map over array"
+  },
+  "Filter Function": {
+    "prefix": "filter",
+    "body": [
+      "filter(${1:array}, (${2:item}) => ${3:condition})"
+    ],
+    "description": "Filter array"
+  },
+  "Reduce Function": {
+    "prefix": "reduce",
+    "body": [
+      "reduce(${1:array}, (${2:acc}, ${3:item}) => ${4:expression}, ${5:initial})"
+    ],
+    "description": "Reduce array"
+  },
+  "Try-Catch": {
+    "prefix": "try",
+    "body": [
+      "try_(() => {",
+      "\t$0",
+      "}, (err) => {",
+      "\tprint \"Error: \" + err",
+      "})"
+    ],
+    "description": "Try-catch error handling"
+  },
+  "Match Statement": {
+    "prefix": "match",
+    "body": [
+      "match ${1:value} {",
+      "\tcase ${2:pattern1}: $3",
+      "\tcase ${4:pattern2}: $5",
+      "\tdefault: $0",
+      "}"
+    ],
+    "description": "Pattern matching"
+  },
+  "Class": {
+    "prefix": "class",
+    "body": [
+      "class ${1:Name} {",
+      "\tfn init(${2:params}) {",
+      "\t\t$0",
+      "\t}",
+      "}"
+    ],
+    "description": "Create a class"
+  },
+  "Async Function": {
+    "prefix": "async",
+    "body": [
+      "async fn ${1:name}(${2:params}) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create an async function"
+  },
+  "Await": {
+    "prefix": "await",
+    "body": [
+      "await ${1:promise}"
+    ],
+    "description": "Await a promise"
+  },
+  "Fetch": {
+    "prefix": "fetch",
+    "body": [
+      "let ${1:response} = await fetch(\"${2:url}\")"
+    ],
+    "description": "Fetch from URL"
+  },
+  "Read File": {
+    "prefix": "readfile",
+    "body": [
+      "let ${1:content} = readFile(\"${2:path}\")"
+    ],
+    "description": "Read a file"
+  },
+  "Write File": {
+    "prefix": "writefile",
+    "body": [
+      "writeFile(\"${1:path}\", ${2:content})"
+    ],
+    "description": "Write to a file"
+  },
+  "Input": {
+    "prefix": "input",
+    "body": [
+      "let ${1:value} = input(\"${2:prompt}: \")"
+    ],
+    "description": "Get user input"
+  },
+  "Random Number": {
+    "prefix": "rand",
+    "body": [
+      "random(${1:0}, ${2:100})"
+    ],
+    "description": "Generate random number"
+  },
+  "Timer": {
+    "prefix": "timer",
+    "body": [
+      "let ${1:start} = now()",
+      "$0",
+      "print \"Elapsed: \" + str(now() - ${1:start}) + \"ms\""
+    ],
+    "description": "Create a timer"
+  },
+  "Main Entry": {
+    "prefix": "main",
+    "body": [
+      "// VoxelScript Program",
+      "// ${1:Description}",
+      "",
+      "fn main() {",
+      "\t$0",
+      "}",
+      "",
+      "main()"
+    ],
+    "description": "Main program entry point"
+  },
+  "Hello World": {
+    "prefix": "hello",
+    "body": [
+      "// Hello World in VoxelScript",
+      "print \"Hello, World!\"",
+      "$0"
+    ],
+    "description": "Hello World program"
+  },
+  "Game Loop": {
+    "prefix": "gameloop",
+    "body": [
+      "let running = true",
+      "let frame = 0",
+      "",
+      "fn update() {",
+      "\t// Update game state",
+      "\t$0",
+      "}",
+      "",
+      "fn render() {",
+      "\t// Render frame",
+      "\tprint \"Frame: \" + str(frame)",
+      "}",
+      "",
+      "while running {",
+      "\tupdate()",
+      "\trender()",
+      "\tframe = frame + 1",
+      "\tdelay(16) // ~60 FPS",
+      "}"
+    ],
+    "description": "Create a game loop"
+  },
+  "Fibonacci": {
+    "prefix": "fib",
+    "body": [
+      "fn fib(n) {",
+      "\tif n <= 1 { return n }",
+      "\treturn fib(n - 1) + fib(n - 2)",
+      "}",
+      "",
+      "print \"Fibonacci(${1:10}) = \" + str(fib(${1:10}))"
+    ],
+    "description": "Fibonacci function"
+  },
+  "Factorial": {
+    "prefix": "fact",
+    "body": [
+      "fn factorial(n) {",
+      "\tif n <= 1 { return 1 }",
+      "\treturn n * factorial(n - 1)",
+      "}",
+      "",
+      "print \"Factorial(${1:5}) = \" + str(factorial(${1:5}))"
+    ],
+    "description": "Factorial function"
+  }
+}

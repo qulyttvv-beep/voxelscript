@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff00;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00cc00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#009900;stop-opacity:1" />
+    </linearGradient>
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="innerGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="#000000" rx="50"/>
+  
+  <!-- Grid lines background effect -->
+  <g opacity="0.3">
+    <line x1="0" y1="100" x2="512" y2="100" stroke="#003300" stroke-width="1"/>
+    <line x1="0" y1="200" x2="512" y2="200" stroke="#003300" stroke-width="1"/>
+    <line x1="0" y1="300" x2="512" y2="300" stroke="#003300" stroke-width="1"/>
+    <line x1="0" y1="400" x2="512" y2="400" stroke="#003300" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="512" stroke="#003300" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="512" stroke="#003300" stroke-width="1"/>
+    <line x1="300" y1="0" x2="300" y2="512" stroke="#003300" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="512" stroke="#003300" stroke-width="1"/>
+  </g>
+  
+  <!-- Main 3D Cube - Isometric -->
+  <g filter="url(#neonGlow)" transform="translate(256, 256)">
+    <!-- Back face -->
+    <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" 
+             fill="none" stroke="#004400" stroke-width="3"/>
+    
+    <!-- Left face -->
+    <polygon points="-104,-60 0,0 0,120 -104,60" 
+             fill="rgba(0,100,0,0.3)" stroke="url(#glow)" stroke-width="4"/>
+    
+    <!-- Right face -->
+    <polygon points="104,-60 0,0 0,120 104,60" 
+             fill="rgba(0,80,0,0.3)" stroke="url(#glow)" stroke-width="4"/>
+    
+    <!-- Top face -->
+    <polygon points="0,-120 104,-60 0,0 -104,-60" 
+             fill="rgba(0,150,0,0.4)" stroke="url(#glow)" stroke-width="4"/>
+    
+    <!-- Inner glow lines -->
+    <line x1="0" y1="-120" x2="0" y2="0" stroke="#00ff00" stroke-width="2" opacity="0.5"/>
+    <line x1="-104" y1="-60" x2="0" y2="0" stroke="#00ff00" stroke-width="2" opacity="0.5"/>
+    <line x1="104" y1="-60" x2="0" y2="0" stroke="#00ff00" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- V letter stylized -->
+  <g filter="url(#neonGlow)">
+    <text x="256" y="290" 
+          font-family="Consolas, monospace" 
+          font-size="100" 
+          font-weight="bold" 
+          fill="url(#glow)" 
+          text-anchor="middle">V</text>
+  </g>
+  
+  <!-- Corner brackets for code feel -->
+  <g stroke="#00ff00" stroke-width="4" fill="none" opacity="0.8" filter="url(#neonGlow)">
+    <path d="M 40,40 L 40,80 M 40,40 L 80,40"/>
+    <path d="M 472,40 L 472,80 M 472,40 L 432,40"/>
+    <path d="M 40,472 L 40,432 M 40,472 L 80,472"/>
+    <path d="M 472,472 L 472,432 M 472,472 L 432,472"/>
+  </g>
+  
+  <!-- Glowing dots -->
+  <circle cx="256" cy="400" r="6" fill="#00ff00" filter="url(#neonGlow)"/>
+  <circle cx="200" cy="420" r="4" fill="#00cc00" filter="url(#neonGlow)" opacity="0.7"/>
+  <circle cx="312" cy="420" r="4" fill="#00cc00" filter="url(#neonGlow)" opacity="0.7"/>
+</svg>

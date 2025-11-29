@@ -513,6 +513,696 @@ const builtins = {
   bold: (s) => `\x1b[1m${s}\x1b[0m`,
   dim: (s) => `\x1b[2m${s}\x1b[0m`,
   underline: (s) => `\x1b[4m${s}\x1b[0m`,
+  
+  // =============================================
+  // MULTI-LANGUAGE LIBRARY SUPPORT
+  // =============================================
+  
+  // ===== PYTHON-STYLE FUNCTIONS =====
+  // List comprehension helpers
+  listcomp: (arr, fn, condition) => {
+    const result = [];
+    for (const item of arr) {
+      if (!condition || condition(item)) {
+        result.push(fn(item));
+      }
+    }
+    return result;
+  },
+  enumerate: (arr, start = 0) => arr.map((v, i) => [i + start, v]),
+  zip: (...arrs) => arrs[0].map((_, i) => arrs.map(arr => arr[i])),
+  zipLongest: (...arrs) => {
+    const maxLen = Math.max(...arrs.map(a => a.length));
+    return Array.from({length: maxLen}, (_, i) => arrs.map(arr => arr[i]));
+  },
+  all: (arr) => arr.every(Boolean),
+  any: (arr) => arr.some(Boolean),
+  sum: (arr) => arr.reduce((a, b) => a + b, 0),
+  product: (arr) => arr.reduce((a, b) => a * b, 1),
+  min: (...args) => args.length === 1 && Array.isArray(args[0]) ? Math.min(...args[0]) : Math.min(...args),
+  max: (...args) => args.length === 1 && Array.isArray(args[0]) ? Math.max(...args[0]) : Math.max(...args),
+  sorted: (arr, key, reverse = false) => {
+    const result = [...arr];
+    result.sort((a, b) => {
+      const va = key ? (typeof key === 'function' ? key(a) : a[key]) : a;
+      const vb = key ? (typeof key === 'function' ? key(b) : b[key]) : b;
+      return va < vb ? -1 : va > vb ? 1 : 0;
+    });
+    return reverse ? result.reverse() : result;
+  },
+  reversed: (arr) => [...arr].reverse(),
+  
+  // Python dict methods
+  dict: (entries) => Object.fromEntries(entries || []),
+  dictGet: (obj, key, def = null) => obj.hasOwnProperty(key) ? obj[key] : def,
+  dictItems: (obj) => Object.entries(obj),
+  dictKeys: (obj) => Object.keys(obj),
+  dictValues: (obj) => Object.values(obj),
+  dictUpdate: (obj, other) => Object.assign(obj, other),
+  dictPop: (obj, key, def = null) => {
+    const val = obj.hasOwnProperty(key) ? obj[key] : def;
+    delete obj[key];
+    return val;
+  },
+  dictSetDefault: (obj, key, def = null) => {
+    if (!obj.hasOwnProperty(key)) obj[key] = def;
+    return obj[key];
+  },
+  
+  // Python string methods
+  strip: (s) => String(s).trim(),
+  lstrip: (s) => String(s).trimStart(),
+  rstrip: (s) => String(s).trimEnd(),
+  splitlines: (s) => String(s).split(/\r?\n/),
+  zfill: (s, width) => String(s).padStart(width, '0'),
+  center: (s, width, char = ' ') => {
+    s = String(s);
+    const padding = width - s.length;
+    const left = Math.floor(padding / 2);
+    const right = padding - left;
+    return char.repeat(left) + s + char.repeat(right);
+  },
+  ljust: (s, width, char = ' ') => String(s).padEnd(width, char),
+  rjust: (s, width, char = ' ') => String(s).padStart(width, char),
+  
+  // Python itertools style
+  chain: (...arrs) => arrs.flat(),
+  repeat: (val, n) => Array(n).fill(val),
+  cycle: (arr, n) => {
+    const result = [];
+    for (let i = 0; i < n; i++) result.push(arr[i % arr.length]);
+    return result;
+  },
+  combinations: (arr, r) => {
+    if (r === 1) return arr.map(x => [x]);
+    const result = [];
+    for (let i = 0; i <= arr.length - r; i++) {
+      const head = arr[i];
+      const tail = arr.slice(i + 1);
+      for (const combo of builtins.combinations(tail, r - 1)) {
+        result.push([head, ...combo]);
+      }
+    }
+    return result;
+  },
+  permutations: (arr, r = arr.length) => {
+    if (r === 1) return arr.map(x => [x]);
+    const result = [];
+    for (let i = 0; i < arr.length; i++) {
+      const head = arr[i];
+      const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+      for (const perm of builtins.permutations(rest, r - 1)) {
+        result.push([head, ...perm]);
+      }
+    }
+    return result;
+  },
+  
+  // ===== CSS-STYLE COLOR FUNCTIONS =====
+  rgb: (r, g, b) => ({ r, g, b, a: 1, toString: () => `rgb(${r}, ${g}, ${b})` }),
+  rgba: (r, g, b, a) => ({ r, g, b, a, toString: () => `rgba(${r}, ${g}, ${b}, ${a})` }),
+  hsl: (h, s, l) => {
+    // Convert HSL to RGB
+    s /= 100; l /= 100;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r, g, b;
+    if (h < 60) { r = c; g = x; b = 0; }
+    else if (h < 120) { r = x; g = c; b = 0; }
+    else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; }
+    else if (h < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    return {
+      r: Math.round((r + m) * 255),
+      g: Math.round((g + m) * 255),
+      b: Math.round((b + m) * 255),
+      a: 1,
+      toString: () => `hsl(${h}, ${s * 100}%, ${l * 100}%)`
+    };
+  },
+  hsla: (h, s, l, a) => {
+    const color = builtins.hsl(h, s, l);
+    color.a = a;
+    color.toString = () => `hsla(${h}, ${s}%, ${l}%, ${a})`;
+    return color;
+  },
+  hex: (hexStr) => {
+    const hex = hexStr.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const a = hex.length === 8 ? parseInt(hex.substr(6, 2), 16) / 255 : 1;
+    return { r, g, b, a, toString: () => `#${hex}` };
+  },
+  toHex: (color) => {
+    const r = color.r.toString(16).padStart(2, '0');
+    const g = color.g.toString(16).padStart(2, '0');
+    const b = color.b.toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  },
+  lighten: (color, amount) => ({
+    r: Math.min(255, color.r + amount),
+    g: Math.min(255, color.g + amount),
+    b: Math.min(255, color.b + amount),
+    a: color.a
+  }),
+  darken: (color, amount) => ({
+    r: Math.max(0, color.r - amount),
+    g: Math.max(0, color.g - amount),
+    b: Math.max(0, color.b - amount),
+    a: color.a
+  }),
+  saturate: (color, amount) => {
+    const gray = (color.r + color.g + color.b) / 3;
+    return {
+      r: Math.min(255, color.r + (color.r - gray) * amount),
+      g: Math.min(255, color.g + (color.g - gray) * amount),
+      b: Math.min(255, color.b + (color.b - gray) * amount),
+      a: color.a
+    };
+  },
+  desaturate: (color, amount) => {
+    const gray = (color.r + color.g + color.b) / 3;
+    return {
+      r: color.r - (color.r - gray) * amount,
+      g: color.g - (color.g - gray) * amount,
+      b: color.b - (color.b - gray) * amount,
+      a: color.a
+    };
+  },
+  invert: (color) => ({
+    r: 255 - color.r,
+    g: 255 - color.g,
+    b: 255 - color.b,
+    a: color.a
+  }),
+  grayscale: (color) => {
+    const gray = Math.round(color.r * 0.299 + color.g * 0.587 + color.b * 0.114);
+    return { r: gray, g: gray, b: gray, a: color.a };
+  },
+  mix: (color1, color2, weight = 0.5) => ({
+    r: Math.round(color1.r * (1 - weight) + color2.r * weight),
+    g: Math.round(color1.g * (1 - weight) + color2.g * weight),
+    b: Math.round(color1.b * (1 - weight) + color2.b * weight),
+    a: color1.a * (1 - weight) + color2.a * weight
+  }),
+  complement: (color) => ({
+    r: 255 - color.r,
+    g: 255 - color.g,
+    b: 255 - color.b,
+    a: color.a
+  }),
+  alpha: (color, a) => ({ ...color, a }),
+  opacity: (color, a) => ({ ...color, a }),
+  
+  // CSS calc-style functions
+  calc: (expr) => {
+    // Simple expression evaluator for calc-like operations
+    return eval(expr.replace(/px|em|rem|%/g, ''));
+  },
+  clamp: (min, val, max) => Math.min(max, Math.max(min, val)),
+  
+  // ===== SDL2-STYLE GRAPHICS LIBRARY =====
+  // These return data structures for graphics rendering
+  // Canvas/Screen simulation (returns render commands)
+  
+  // Window management
+  createWindow: (title, width, height) => ({
+    type: 'window',
+    title,
+    width,
+    height,
+    commands: [],
+    objects: []
+  }),
+  
+  setWindowTitle: (win, title) => { win.title = title; return win; },
+  setWindowSize: (win, w, h) => { win.width = w; win.height = h; return win; },
+  
+  // Drawing primitives (SDL2-style)
+  drawPoint: (x, y, color = {r: 255, g: 255, b: 255}) => ({
+    type: 'point', x, y, color
+  }),
+  
+  drawLine: (x1, y1, x2, y2, color = {r: 255, g: 255, b: 255}, thickness = 1) => ({
+    type: 'line', x1, y1, x2, y2, color, thickness
+  }),
+  
+  drawRect: (x, y, w, h, color = {r: 255, g: 255, b: 255}, filled = false) => ({
+    type: 'rect', x, y, w, h, color, filled
+  }),
+  
+  drawCircle: (x, y, radius, color = {r: 255, g: 255, b: 255}, filled = false) => ({
+    type: 'circle', x, y, radius, color, filled
+  }),
+  
+  drawEllipse: (x, y, rx, ry, color = {r: 255, g: 255, b: 255}, filled = false) => ({
+    type: 'ellipse', x, y, rx, ry, color, filled
+  }),
+  
+  drawTriangle: (x1, y1, x2, y2, x3, y3, color = {r: 255, g: 255, b: 255}, filled = false) => ({
+    type: 'triangle', x1, y1, x2, y2, x3, y3, color, filled
+  }),
+  
+  drawPolygon: (points, color = {r: 255, g: 255, b: 255}, filled = false) => ({
+    type: 'polygon', points, color, filled
+  }),
+  
+  drawArc: (x, y, radius, startAngle, endAngle, color = {r: 255, g: 255, b: 255}) => ({
+    type: 'arc', x, y, radius, startAngle, endAngle, color
+  }),
+  
+  drawText: (text, x, y, color = {r: 255, g: 255, b: 255}, size = 16, font = 'monospace') => ({
+    type: 'text', text, x, y, color, size, font
+  }),
+  
+  drawImage: (src, x, y, w, h) => ({
+    type: 'image', src, x, y, w, h
+  }),
+  
+  // Sprites (game objects)
+  createSprite: (x, y, w, h, color) => ({
+    type: 'sprite',
+    x, y, w, h,
+    color: color || {r: 255, g: 255, b: 255},
+    velocity: {x: 0, y: 0},
+    acceleration: {x: 0, y: 0},
+    rotation: 0,
+    scale: 1,
+    visible: true,
+    collider: {type: 'rect', w, h}
+  }),
+  
+  moveSprite: (sprite, dx, dy) => {
+    sprite.x += dx;
+    sprite.y += dy;
+    return sprite;
+  },
+  
+  setPosition: (sprite, x, y) => {
+    sprite.x = x;
+    sprite.y = y;
+    return sprite;
+  },
+  
+  setVelocity: (sprite, vx, vy) => {
+    sprite.velocity = {x: vx, y: vy};
+    return sprite;
+  },
+  
+  setAcceleration: (sprite, ax, ay) => {
+    sprite.acceleration = {x: ax, y: ay};
+    return sprite;
+  },
+  
+  updateSprite: (sprite, dt = 1) => {
+    sprite.velocity.x += sprite.acceleration.x * dt;
+    sprite.velocity.y += sprite.acceleration.y * dt;
+    sprite.x += sprite.velocity.x * dt;
+    sprite.y += sprite.velocity.y * dt;
+    return sprite;
+  },
+  
+  // Collision detection
+  collides: (a, b) => {
+    return a.x < b.x + b.w &&
+           a.x + a.w > b.x &&
+           a.y < b.y + b.h &&
+           a.y + a.h > b.y;
+  },
+  
+  collidesCircle: (a, b) => {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist < (a.radius || a.w/2) + (b.radius || b.w/2);
+  },
+  
+  collidesPoint: (sprite, px, py) => {
+    return px >= sprite.x && px <= sprite.x + sprite.w &&
+           py >= sprite.y && py <= sprite.y + sprite.h;
+  },
+  
+  // Input simulation
+  createInput: () => ({
+    keys: {},
+    mouse: {x: 0, y: 0, buttons: {}},
+    onKey: null,
+    onMouse: null
+  }),
+  
+  isKeyDown: (input, key) => input.keys[key] === true,
+  isKeyUp: (input, key) => input.keys[key] !== true,
+  isMouseDown: (input, button = 'left') => input.mouse.buttons[button] === true,
+  getMousePos: (input) => ({x: input.mouse.x, y: input.mouse.y}),
+  
+  // Audio (data structures)
+  createSound: (src) => ({
+    type: 'sound',
+    src,
+    volume: 1,
+    loop: false,
+    playing: false
+  }),
+  
+  playSound: (sound) => { sound.playing = true; return sound; },
+  stopSound: (sound) => { sound.playing = false; return sound; },
+  setVolume: (sound, vol) => { sound.volume = vol; return sound; },
+  setLoop: (sound, loop) => { sound.loop = loop; return sound; },
+  
+  // Scene management
+  createScene: (name) => ({
+    type: 'scene',
+    name,
+    objects: [],
+    active: false
+  }),
+  
+  addToScene: (scene, obj) => { scene.objects.push(obj); return scene; },
+  removeFromScene: (scene, obj) => {
+    const idx = scene.objects.indexOf(obj);
+    if (idx > -1) scene.objects.splice(idx, 1);
+    return scene;
+  },
+  
+  // ===== EXTENDED MATH LIBRARY =====
+  // Vector operations (2D and 3D)
+  vec2: (x, y) => ({x, y}),
+  vec3: (x, y, z) => ({x, y, z}),
+  vec4: (x, y, z, w) => ({x, y, z, w}),
+  
+  vecAdd: (a, b) => a.z !== undefined 
+    ? {x: a.x + b.x, y: a.y + b.y, z: a.z + b.z}
+    : {x: a.x + b.x, y: a.y + b.y},
+  
+  vecSub: (a, b) => a.z !== undefined
+    ? {x: a.x - b.x, y: a.y - b.y, z: a.z - b.z}
+    : {x: a.x - b.x, y: a.y - b.y},
+  
+  vecMul: (v, scalar) => v.z !== undefined
+    ? {x: v.x * scalar, y: v.y * scalar, z: v.z * scalar}
+    : {x: v.x * scalar, y: v.y * scalar},
+  
+  vecDiv: (v, scalar) => v.z !== undefined
+    ? {x: v.x / scalar, y: v.y / scalar, z: v.z / scalar}
+    : {x: v.x / scalar, y: v.y / scalar},
+  
+  vecDot: (a, b) => a.z !== undefined
+    ? a.x * b.x + a.y * b.y + a.z * b.z
+    : a.x * b.x + a.y * b.y,
+  
+  vecCross: (a, b) => ({
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x
+  }),
+  
+  vecMag: (v) => v.z !== undefined
+    ? Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+    : Math.sqrt(v.x * v.x + v.y * v.y),
+  
+  vecNorm: (v) => {
+    const mag = builtins.vecMag(v);
+    return builtins.vecDiv(v, mag);
+  },
+  
+  vecDist: (a, b) => builtins.vecMag(builtins.vecSub(a, b)),
+  
+  vecLerp: (a, b, t) => a.z !== undefined
+    ? {x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t}
+    : {x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t},
+  
+  vecAngle: (v) => Math.atan2(v.y, v.x),
+  
+  vecFromAngle: (angle, mag = 1) => ({
+    x: Math.cos(angle) * mag,
+    y: Math.sin(angle) * mag
+  }),
+  
+  vecRotate: (v, angle) => ({
+    x: v.x * Math.cos(angle) - v.y * Math.sin(angle),
+    y: v.x * Math.sin(angle) + v.y * Math.cos(angle)
+  }),
+  
+  // Matrix operations (4x4 for 3D transforms)
+  mat4: () => [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+  ],
+  
+  mat4Identity: () => builtins.mat4(),
+  
+  mat4Mul: (a, b) => {
+    const result = new Array(16).fill(0);
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        for (let k = 0; k < 4; k++) {
+          result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+        }
+      }
+    }
+    return result;
+  },
+  
+  mat4Translate: (x, y, z) => [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    x, y, z, 1
+  ],
+  
+  mat4Scale: (x, y, z) => [
+    x, 0, 0, 0,
+    0, y, 0, 0,
+    0, 0, z, 0,
+    0, 0, 0, 1
+  ],
+  
+  mat4RotateX: (angle) => {
+    const c = Math.cos(angle), s = Math.sin(angle);
+    return [
+      1, 0, 0, 0,
+      0, c, s, 0,
+      0, -s, c, 0,
+      0, 0, 0, 1
+    ];
+  },
+  
+  mat4RotateY: (angle) => {
+    const c = Math.cos(angle), s = Math.sin(angle);
+    return [
+      c, 0, -s, 0,
+      0, 1, 0, 0,
+      s, 0, c, 0,
+      0, 0, 0, 1
+    ];
+  },
+  
+  mat4RotateZ: (angle) => {
+    const c = Math.cos(angle), s = Math.sin(angle);
+    return [
+      c, s, 0, 0,
+      -s, c, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ];
+  },
+  
+  mat4Perspective: (fov, aspect, near, far) => {
+    const f = 1 / Math.tan(fov / 2);
+    return [
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (far + near) / (near - far), -1,
+      0, 0, (2 * far * near) / (near - far), 0
+    ];
+  },
+  
+  mat4LookAt: (eye, center, up) => {
+    const z = builtins.vecNorm(builtins.vecSub(eye, center));
+    const x = builtins.vecNorm(builtins.vecCross(up, z));
+    const y = builtins.vecCross(z, x);
+    return [
+      x.x, y.x, z.x, 0,
+      x.y, y.y, z.y, 0,
+      x.z, y.z, z.z, 0,
+      -builtins.vecDot(x, eye), -builtins.vecDot(y, eye), -builtins.vecDot(z, eye), 1
+    ];
+  },
+  
+  // Complex numbers
+  complex: (re, im) => ({re, im}),
+  
+  complexAdd: (a, b) => ({re: a.re + b.re, im: a.im + b.im}),
+  complexSub: (a, b) => ({re: a.re - b.re, im: a.im - b.im}),
+  complexMul: (a, b) => ({
+    re: a.re * b.re - a.im * b.im,
+    im: a.re * b.im + a.im * b.re
+  }),
+  complexDiv: (a, b) => {
+    const denom = b.re * b.re + b.im * b.im;
+    return {
+      re: (a.re * b.re + a.im * b.im) / denom,
+      im: (a.im * b.re - a.re * b.im) / denom
+    };
+  },
+  complexAbs: (c) => Math.sqrt(c.re * c.re + c.im * c.im),
+  complexArg: (c) => Math.atan2(c.im, c.re),
+  complexConj: (c) => ({re: c.re, im: -c.im}),
+  complexPolar: (r, theta) => ({re: r * Math.cos(theta), im: r * Math.sin(theta)}),
+  
+  // Quaternions (for 3D rotations)
+  quat: (w, x, y, z) => ({w, x, y, z}),
+  quatIdentity: () => ({w: 1, x: 0, y: 0, z: 0}),
+  
+  quatMul: (a, b) => ({
+    w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+    x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+    y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+    z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w
+  }),
+  
+  quatFromAxisAngle: (axis, angle) => {
+    const halfAngle = angle / 2;
+    const s = Math.sin(halfAngle);
+    return {
+      w: Math.cos(halfAngle),
+      x: axis.x * s,
+      y: axis.y * s,
+      z: axis.z * s
+    };
+  },
+  
+  quatRotateVec: (q, v) => {
+    const qv = {w: 0, x: v.x, y: v.y, z: v.z};
+    const qConj = {w: q.w, x: -q.x, y: -q.y, z: -q.z};
+    const result = builtins.quatMul(builtins.quatMul(q, qv), qConj);
+    return {x: result.x, y: result.y, z: result.z};
+  },
+  
+  quatSlerp: (a, b, t) => {
+    let dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+    if (dot < 0) { b = {w: -b.w, x: -b.x, y: -b.y, z: -b.z}; dot = -dot; }
+    if (dot > 0.9995) {
+      return {
+        w: a.w + t * (b.w - a.w),
+        x: a.x + t * (b.x - a.x),
+        y: a.y + t * (b.y - a.y),
+        z: a.z + t * (b.z - a.z)
+      };
+    }
+    const theta0 = Math.acos(dot);
+    const theta = theta0 * t;
+    const sinTheta = Math.sin(theta);
+    const sinTheta0 = Math.sin(theta0);
+    const s0 = Math.cos(theta) - dot * sinTheta / sinTheta0;
+    const s1 = sinTheta / sinTheta0;
+    return {
+      w: s0 * a.w + s1 * b.w,
+      x: s0 * a.x + s1 * b.x,
+      y: s0 * a.y + s1 * b.y,
+      z: s0 * a.z + s1 * b.z
+    };
+  },
+  
+  // Additional math functions
+  lerp: (a, b, t) => a + (b - a) * t,
+  inverseLerp: (a, b, v) => (v - a) / (b - a),
+  remap: (v, inMin, inMax, outMin, outMax) => outMin + (v - inMin) * (outMax - outMin) / (inMax - inMin),
+  smoothstep: (edge0, edge1, x) => {
+    const t = builtins.clamp(0, (x - edge0) / (edge1 - edge0), 1);
+    return t * t * (3 - 2 * t);
+  },
+  smootherstep: (edge0, edge1, x) => {
+    const t = builtins.clamp(0, (x - edge0) / (edge1 - edge0), 1);
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  },
+  
+  fract: (x) => x - Math.floor(x),
+  mod: (x, y) => ((x % y) + y) % y,
+  wrap: (x, min, max) => min + builtins.mod(x - min, max - min),
+  
+  degToRad: (deg) => deg * Math.PI / 180,
+  radToDeg: (rad) => rad * 180 / Math.PI,
+  
+  // Noise functions
+  noise: (x, y = 0, z = 0) => {
+    // Simple Perlin-like noise approximation
+    const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+    const lerp = (a, b, t) => a + t * (b - a);
+    const grad = (hash, x, y, z) => {
+      const h = hash & 15;
+      const u = h < 8 ? x : y;
+      const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
+      return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+    };
+    const p = new Array(512);
+    const permutation = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];
+    for (let i = 0; i < 256; i++) p[256 + i] = p[i] = permutation[i];
+    
+    const X = Math.floor(x) & 255;
+    const Y = Math.floor(y) & 255;
+    const Z = Math.floor(z) & 255;
+    x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+    const u = fade(x), v = fade(y), w = fade(z);
+    const A = p[X] + Y, AA = p[A] + Z, AB = p[A + 1] + Z;
+    const B = p[X + 1] + Y, BA = p[B] + Z, BB = p[B + 1] + Z;
+    
+    return lerp(lerp(lerp(grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z), u),
+                     lerp(grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z), u), v),
+                lerp(lerp(grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1), u),
+                     lerp(grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1), u), v), w);
+  },
+  
+  fbm: (x, y, octaves = 4, lacunarity = 2, gain = 0.5) => {
+    let value = 0, amplitude = 1, frequency = 1, maxValue = 0;
+    for (let i = 0; i < octaves; i++) {
+      value += amplitude * builtins.noise(x * frequency, y * frequency);
+      maxValue += amplitude;
+      amplitude *= gain;
+      frequency *= lacunarity;
+    }
+    return value / maxValue;
+  },
+  
+  // Statistics
+  mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
+  median: (arr) => {
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  },
+  mode: (arr) => {
+    const counts = {};
+    arr.forEach(v => counts[v] = (counts[v] || 0) + 1);
+    return Object.entries(counts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  },
+  variance: (arr) => {
+    const m = builtins.mean(arr);
+    return arr.reduce((sum, v) => sum + (v - m) ** 2, 0) / arr.length;
+  },
+  stddev: (arr) => Math.sqrt(builtins.variance(arr)),
+  
+  // Easing functions (for animations)
+  easeInQuad: (t) => t * t,
+  easeOutQuad: (t) => t * (2 - t),
+  easeInOutQuad: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+  easeInCubic: (t) => t * t * t,
+  easeOutCubic: (t) => (--t) * t * t + 1,
+  easeInOutCubic: (t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+  easeInElastic: (t) => t === 0 ? 0 : t === 1 ? 1 : -Math.pow(2, 10 * (t - 1)) * Math.sin((t - 1.1) * 5 * Math.PI),
+  easeOutElastic: (t) => t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t - 0.1) * 5 * Math.PI) + 1,
+  easeInBounce: (t) => 1 - builtins.easeOutBounce(1 - t),
+  easeOutBounce: (t) => {
+    if (t < 1 / 2.75) return 7.5625 * t * t;
+    if (t < 2 / 2.75) return 7.5625 * (t -= 1.5 / 2.75) * t + 0.75;
+    if (t < 2.5 / 2.75) return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
+    return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
+  },
 };
 
 class Interpreter {

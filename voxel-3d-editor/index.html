@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxelScript 3D Editor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-left">
+            <span class="logo">◈ VOXELSCRIPT</span>
+            <span class="file-name" id="fileName">untitled.voxel</span>
+        </div>
+        <div class="title-bar-center">
+            <button class="run-btn" id="runBtn" title="Run (F5)">▶ RUN</button>
+        </div>
+        <div class="title-bar-right">
+            <button class="window-btn minimize" id="minimizeBtn">─</button>
+            <button class="window-btn maximize" id="maximizeBtn">□</button>
+            <button class="window-btn close" id="closeBtn">✕</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel - File Explorer -->
+        <div class="panel file-panel" id="filePanel">
+            <div class="panel-header">
+                <span>📁 EXPLORER</span>
+                <button class="panel-toggle" onclick="togglePanel('filePanel')">◀</button>
+            </div>
+            <div class="panel-content">
+                <div class="file-tree" id="fileTree">
+                    <div class="file-item active">📄 untitled.voxel</div>
+                </div>
+                <div class="quick-actions">
+                    <button onclick="newFile()">+ New File</button>
+                    <button onclick="openFile()">📂 Open</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Code Editor -->
+        <div class="editor-container">
+            <div class="editor-header">
+                <div class="tabs">
+                    <div class="tab active" id="currentTab">
+                        <span class="tab-icon">◈</span>
+                        <span class="tab-name">untitled.voxel</span>
+                        <span class="tab-close">×</span>
+                    </div>
+                </div>
+            </div>
+            <div class="editor-wrapper">
+                <div class="line-numbers" id="lineNumbers"></div>
+                <textarea id="codeEditor" spellcheck="false" placeholder="// Start coding in VoxelScript...
+
+print 'Hello, Matrix!'
+
+// Define a function
+func greet(name) {
+    return 'Welcome, ' + name + '!'
+}
+
+// Use variables
+let message = greet('Neo')
+print message
+"></textarea>
+            </div>
+        </div>
+
+        <!-- Right Panel - 3D View -->
+        <div class="panel view-panel" id="viewPanel">
+            <div class="panel-header">
+                <span>🎮 3D VIEW</span>
+                <button class="panel-toggle" onclick="togglePanel('viewPanel')">▶</button>
+            </div>
+            <div class="panel-content">
+                <div id="threeContainer"></div>
+                <div class="view-controls">
+                    <button onclick="resetCamera()">↺ Reset</button>
+                    <button onclick="toggleRotation()">⟳ Auto-Rotate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Panel - Console -->
+    <div class="console-panel" id="consolePanel">
+        <div class="console-header">
+            <span>⌨ CONSOLE</span>
+            <div class="console-actions">
+                <button onclick="clearConsole()">Clear</button>
+                <button class="panel-toggle" onclick="toggleConsole()">▼</button>
+            </div>
+        </div>
+        <div class="console-content" id="consoleContent">
+            <div class="console-line success">VoxelScript 3D Editor Ready</div>
+            <div class="console-line info">Press F5 to run your code</div>
+        </div>
+        <div class="console-input-wrapper">
+            <span class="prompt">❯</span>
+            <input type="text" id="consoleInput" placeholder="Enter VoxelScript command...">
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left">
+            <span class="status-item">◈ VoxelScript</span>
+            <span class="status-item" id="cursorPos">Ln 1, Col 1</span>
+        </div>
+        <div class="status-right">
+            <span class="status-item" id="status">Ready</span>
+            <span class="status-item">UTF-8</span>
+            <span class="status-item">Matrix Theme</span>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

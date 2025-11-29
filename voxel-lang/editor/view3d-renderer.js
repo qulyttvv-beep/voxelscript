@@ -65,6 +65,11 @@ function hideLoading() {
 // ============================================
 function init3DScene() {
     const canvas = document.getElementById('three-canvas');
+    const container = canvas.parentElement;
+    
+    // Get actual dimensions
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || (window.innerHeight - 32);
     
     // Initialize centerLookAt
     centerLookAt = new THREE.Vector3(0, 0, 0);
@@ -72,16 +77,17 @@ function init3DScene() {
     // Scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000000);
-    scene.fog = new THREE.FogExp2(0x000000, 0.012);
+    scene.fog = new THREE.FogExp2(0x000000, 0.008); // Less dense fog
     
-    // Camera
-    camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    // Camera - wider FOV for better view
+    camera = new THREE.PerspectiveCamera(70, width / height, 0.1, 2000);
     camera.position.set(0, CODE_START_Y, cameraRadius);
     camera.lookAt(0, CODE_START_Y, 0);
     
-    // Renderer
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    // Renderer with proper sizing
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height, false);
     
     // Grid
     createGrid();
@@ -106,66 +112,74 @@ function init3DScene() {
 }
 
 function createGrid() {
-    // Floor grid
-    const gridHelper = new THREE.GridHelper(150, 75, 0x00ff00, 0x001a00);
-    gridHelper.position.y = -50;
+    // Floor grid - larger and brighter
+    const gridHelper = new THREE.GridHelper(300, 100, 0x00ff00, 0x003300);
+    gridHelper.position.y = -30;
     gridHelper.material.transparent = true;
-    gridHelper.material.opacity = 0.6;
+    gridHelper.material.opacity = 0.8;
     scene.add(gridHelper);
     
-    // Back wall grid
-    const backGrid = new THREE.GridHelper(150, 75, 0x00ff00, 0x000800);
+    // Back wall grid - more visible
+    const backGrid = new THREE.GridHelper(300, 100, 0x00ff00, 0x001a00);
     backGrid.rotation.x = Math.PI / 2;
-    backGrid.position.z = -40;
+    backGrid.position.z = -60;
     backGrid.material.transparent = true;
-    backGrid.material.opacity = 0.3;
+    backGrid.material.opacity = 0.5;
     scene.add(backGrid);
     
     // Depth grid
-    const backGrid2 = new THREE.GridHelper(200, 100, 0x004400, 0x000400);
+    const backGrid2 = new THREE.GridHelper(400, 150, 0x008800, 0x001100);
     backGrid2.rotation.x = Math.PI / 2;
-    backGrid2.position.z = -60;
+    backGrid2.position.z = -100;
     backGrid2.material.transparent = true;
-    backGrid2.material.opacity = 0.15;
+    backGrid2.material.opacity = 0.3;
     scene.add(backGrid2);
     
-    // Side grids
-    const leftGrid = new THREE.GridHelper(100, 50, 0x002200, 0x000500);
+    // Side grids - larger
+    const leftGrid = new THREE.GridHelper(200, 80, 0x004400, 0x001100);
     leftGrid.rotation.z = Math.PI / 2;
-    leftGrid.position.x = -40;
+    leftGrid.position.x = -60;
     leftGrid.material.transparent = true;
-    leftGrid.material.opacity = 0.2;
+    leftGrid.material.opacity = 0.3;
     scene.add(leftGrid);
     
-    const rightGrid = new THREE.GridHelper(100, 50, 0x002200, 0x000500);
+    const rightGrid = new THREE.GridHelper(200, 80, 0x004400, 0x001100);
     rightGrid.rotation.z = Math.PI / 2;
-    rightGrid.position.x = 40;
+    rightGrid.position.x = 60;
     rightGrid.material.transparent = true;
-    rightGrid.material.opacity = 0.2;
+    rightGrid.material.opacity = 0.3;
     scene.add(rightGrid);
 }
 
 function createLights() {
-    const ambientLight = new THREE.AmbientLight(0x001100, 0.3);
+    // Stronger ambient for visibility
+    const ambientLight = new THREE.AmbientLight(0x003300, 0.6);
     scene.add(ambientLight);
     
-    const light1 = new THREE.PointLight(0x00ff00, 3, 150);
-    light1.position.set(20, 30, 20);
+    // Main lights - stronger and farther reach
+    const light1 = new THREE.PointLight(0x00ff00, 5, 300);
+    light1.position.set(30, 50, 40);
     scene.add(light1);
     
-    const light2 = new THREE.PointLight(0x00ffff, 2, 150);
-    light2.position.set(-20, -10, -20);
+    const light2 = new THREE.PointLight(0x00ffff, 4, 300);
+    light2.position.set(-30, 20, -30);
     scene.add(light2);
     
-    const spotlight = new THREE.SpotLight(0x00ff00, 5, 200, Math.PI / 6, 0.5);
-    spotlight.position.set(0, 50, 0);
+    // Spotlight from above
+    const spotlight = new THREE.SpotLight(0x00ff00, 8, 400, Math.PI / 4, 0.3);
+    spotlight.position.set(0, 80, 0);
     spotlight.target.position.set(0, 0, 0);
     scene.add(spotlight);
     scene.add(spotlight.target);
     
-    const rimLight = new THREE.PointLight(0x00ff88, 2, 80);
-    rimLight.position.set(0, -30, 30);
+    // Additional fill lights
+    const rimLight = new THREE.PointLight(0x00ff88, 3, 150);
+    rimLight.position.set(0, -20, 50);
     scene.add(rimLight);
+    
+    const frontLight = new THREE.PointLight(0x00ff44, 4, 200);
+    frontLight.position.set(0, 20, 60);
+    scene.add(frontLight);
 }
 
 function createParticles() {
@@ -233,32 +247,33 @@ function createCodeCubes() {
         if (line.trim() === '') return;
         
         const y = CODE_START_Y - (index * LINE_HEIGHT_SPACING);
-        const lineWidth = Math.min(line.length * 0.3, 25);
+        const lineWidth = Math.max(line.length * 0.4, 3); // Minimum width, larger scale
         const color = getColor(line);
         
-        // Main cube
-        const geometry = new THREE.BoxGeometry(lineWidth, 0.8, 0.8);
+        // Main cube - larger and more visible
+        const geometry = new THREE.BoxGeometry(lineWidth, 1.2, 1.2);
         const material = new THREE.MeshPhongMaterial({
             color: color,
             emissive: color,
-            emissiveIntensity: 0.3,
+            emissiveIntensity: 0.5,
             transparent: true,
-            opacity: 0.9
+            opacity: 0.95,
+            shininess: 100
         });
         
         const cube = new THREE.Mesh(geometry, material);
-        cube.position.set(-lineWidth / 2 - 5, y, 0);
+        cube.position.set(0, y, 0); // Center the cubes
         cube.userData = { line: index, content: line };
         
         scene.add(cube);
         codeCubes.push(cube);
         
-        // Glow effect
-        const glowGeometry = new THREE.BoxGeometry(lineWidth + 0.4, 1.2, 1.2);
+        // Stronger glow effect
+        const glowGeometry = new THREE.BoxGeometry(lineWidth + 1, 2, 2);
         const glowMaterial = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            opacity: 0.15,
+            opacity: 0.25,
             blending: THREE.AdditiveBlending
         });
         const glow = new THREE.Mesh(glowGeometry, glowMaterial);
@@ -312,9 +327,14 @@ function setupMouseControls(canvas) {
 // ============================================
 function onResize() {
     const canvas = document.getElementById('three-canvas');
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    const container = canvas.parentElement;
+    
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || (window.innerHeight - 32);
+    
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setSize(width, height, false);
 }
 
 // ============================================

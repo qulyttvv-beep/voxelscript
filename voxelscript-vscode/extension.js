@@ -1,10 +1,12 @@
 const vscode = require('vscode');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
+const os = require('os');
 
 /**
  * VoxelScript VS Code Extension
  * Provides language support for the VoxelScript programming language
+ * Now uses the system-installed 'voxel' command - no marketplace needed!
  */
 
 let outputChannel;
@@ -32,55 +34,7 @@ function activate(context) {
         // Save the file first
         await document.save();
         
-        // Get interpreter path from settings or auto-detect
         const config = vscode.workspace.getConfiguration('voxelscript');
-        let interpreterPath = config.get('interpreterPath');
-        
-        if (!interpreterPath) {
-            // Try to find interpreter in workspace
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (workspaceFolders) {
-                const possiblePaths = [
-                    path.join(workspaceFolders[0].uri.fsPath, 'voxel-lang', 'voxel.js'),
-                    path.join(workspaceFolders[0].uri.fsPath, 'voxel.js'),
-                    path.join(workspaceFolders[0].uri.fsPath, '..', 'voxel-lang', 'voxel.js')
-                ];
-                
-                for (const p of possiblePaths) {
-                    try {
-                        await vscode.workspace.fs.stat(vscode.Uri.file(p));
-                        interpreterPath = p;
-                        break;
-                    } catch {}
-                }
-            }
-        }
-        
-        if (!interpreterPath) {
-            // Ask user to set interpreter path
-            const selection = await vscode.window.showWarningMessage(
-                'VoxelScript interpreter not found. Would you like to configure it?',
-                'Configure', 'Cancel'
-            );
-            
-            if (selection === 'Configure') {
-                const uris = await vscode.window.showOpenDialog({
-                    canSelectFiles: true,
-                    canSelectFolders: false,
-                    filters: { 'JavaScript': ['js'] },
-                    title: 'Select voxel.js interpreter'
-                });
-                
-                if (uris && uris.length > 0) {
-                    interpreterPath = uris[0].fsPath;
-                    await config.update('interpreterPath', interpreterPath, true);
-                } else {
-                    return;
-                }
-            } else {
-                return;
-            }
-        }
         
         // Show output
         if (config.get('showOutputOnRun')) {
@@ -93,11 +47,15 @@ function activate(context) {
         outputChannel.appendLine('═'.repeat(50));
         outputChannel.appendLine('');
         
-        // Run the script
+        // Run the script using the system 'voxel' command
         const filePath = document.fileName;
         const startTime = Date.now();
         
-        const process = spawn('node', [interpreterPath, filePath], {
+        // Use 'voxel' command directly (installed via install-windows.bat or install.sh)
+        const isWindows = os.platform() === 'win32';
+        const voxelCmd = isWindows ? 'voxel.cmd' : 'voxel';
+        
+        const process = spawn(voxelCmd, [filePath], {
             cwd: path.dirname(filePath)
         });
         

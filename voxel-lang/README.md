@@ -24,9 +24,10 @@
 - 🎯 **Simple Syntax** - Easy to learn, powerful to use
 - 🖥️ **3D Code Editor** - Watch your code float in 3D space
 - 🌙 **Matrix Theme** - Pure black with neon green aesthetics
-- 🚀 **200+ Built-in Functions** - Math, strings, arrays, files, networking & more
+- 🚀 **300+ Built-in Functions** - Math, strings, arrays, files, networking & more
+- 🎨 **Modern Language Features** - Classes, arrow functions, async/await, destructuring
 - 💻 **Cross-Platform** - Windows, macOS, and Linux
-- 📦 **VS Code Extension** - Syntax highlighting and IntelliSense
+- 📦 **VS Code Extension** - Syntax highlighting, snippets, and Matrix theme
 
 ---
 
@@ -97,52 +98,152 @@ voxel hello.voxel
 ### Variables
 ```voxel
 let name = "Neo"
-let age = 30
-let pi = 3.14159
+const PI = 3.14159
 let active = true
 let items = [1, 2, 3, 4, 5]
-let person = {"name": "Neo", "age": 30}
+let person = {name: "Neo", age: 30}
+```
+
+### Template Strings
+```voxel
+let name = "World"
+let greeting = `Hello, ${name}!`
+print(greeting)  // Hello, World!
 ```
 
 ### Functions
 ```voxel
 fn greet(name) {
-    print "Hello, " + name + "!"
+    return "Hello, " + name + "!"
 }
 
-greet("World")
+// Default parameters
+fn greetWithDefault(name = "Guest") {
+    return "Hello, " + name + "!"
+}
+
+// Rest parameters
+fn sum(...numbers) {
+    let total = 0
+    loop n in numbers { total += n }
+    return total
+}
 
 // Arrow functions
-let double = (x) => x * 2
-print double(21)  // 42
+let double = x => x * 2
+let add = (a, b) => a + b
+```
+
+### Classes
+```voxel
+class Animal {
+    constructor(name) {
+        this.name = name
+    }
+    
+    speak() {
+        return this.name + " makes a sound"
+    }
+}
+
+class Dog extends Animal {
+    speak() {
+        return this.name + " barks!"
+    }
+}
+
+let dog = new Dog("Rex")
+print(dog.speak())  // Rex barks!
 ```
 
 ### Control Flow
 ```voxel
+// If statements
 if age >= 18 {
-    print "Adult"
-} elif age >= 13 {
-    print "Teenager"  
+    print("Adult")
+} else if age >= 13 {
+    print("Teenager")
 } else {
-    print "Child"
+    print("Child")
 }
 
-for i in range(0, 10) {
-    print i
+// Ternary
+let status = age >= 18 ? "adult" : "minor"
+
+// Switch/Match
+switch day {
+    case 1:
+        print("Monday")
+        break
+    default:
+        print("Other")
+}
+
+// Loops
+loop i from 0 to 10 {
+    print(i)
+}
+
+loop item in items {
+    print(item)
 }
 
 while running {
     // code
 }
+
+// Loop with step
+loop i from 10 to 0 step -1 {
+    print(i)  // Countdown
+}
+```
+
+### Error Handling
+```voxel
+try {
+    throw "Something went wrong"
+} catch(e) {
+    print("Error: " + e)
+} finally {
+    print("Cleanup")
+}
+```
+
+### Destructuring
+```voxel
+let [first, second, ...rest] = [1, 2, 3, 4, 5]
+let {name, age} = {name: "Neo", age: 30}
+```
+
+### Modern Operators
+```voxel
+// Nullish coalescing
+let value = null ?? "default"
+
+// Optional chaining
+let name = user?.profile?.name
+
+// Pipe operator
+let result = 5 |> double |> addTen
+
+// Increment/Decrement
+count++
+count--
+
+// Compound assignment
+x += 5
 ```
 
 ### Arrays
 ```voxel
 let numbers = [1, 2, 3, 4, 5]
 
-let doubled = map(numbers, (x) => x * 2)      // [2, 4, 6, 8, 10]
-let evens = filter(numbers, (x) => x % 2 == 0) // [2, 4]
+let doubled = map(numbers, x => x * 2)         // [2, 4, 6, 8, 10]
+let evens = filter(numbers, x => x % 2 == 0)   // [2, 4]
 let sum = reduce(numbers, (a, b) => a + b, 0)  // 15
+
+// Spread operator
+let combined = [...arr1, ...arr2]
 ```
 
 ### Objects

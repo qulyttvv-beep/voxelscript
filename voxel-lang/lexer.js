@@ -4,19 +4,26 @@ const TokenType = {
   // Literals
   NUMBER: 'NUMBER',
   STRING: 'STRING',
+  TEMPLATE_STRING: 'TEMPLATE_STRING',
   BOOL: 'BOOL',
   NULL: 'NULL',
   
   // Identifiers & Keywords
   IDENTIFIER: 'IDENTIFIER',
   LET: 'LET',
+  CONST: 'CONST',
   FN: 'FN',
   IF: 'IF',
   ELSE: 'ELSE',
   LOOP: 'LOOP',
   WHILE: 'WHILE',
+  DO: 'DO',
+  FOR: 'FOR',
+  IN: 'IN',
+  OF: 'OF',
   FROM: 'FROM',
   TO: 'TO',
+  STEP: 'STEP',
   RETURN: 'RETURN',
   PRINT: 'PRINT',
   INPUT: 'INPUT',
@@ -28,6 +35,31 @@ const TokenType = {
   BREAK: 'BREAK',
   CONTINUE: 'CONTINUE',
   
+  // New keywords
+  CLASS: 'CLASS',
+  EXTENDS: 'EXTENDS',
+  NEW: 'NEW',
+  THIS: 'THIS',
+  SELF: 'SELF',
+  SUPER: 'SUPER',
+  STATIC: 'STATIC',
+  TRY: 'TRY',
+  CATCH: 'CATCH',
+  FINALLY: 'FINALLY',
+  THROW: 'THROW',
+  SWITCH: 'SWITCH',
+  MATCH: 'MATCH',
+  CASE: 'CASE',
+  DEFAULT: 'DEFAULT',
+  ASYNC: 'ASYNC',
+  AWAIT: 'AWAIT',
+  IMPORT: 'IMPORT',
+  EXPORT: 'EXPORT',
+  AS: 'AS',
+  TYPEOF: 'TYPEOF',
+  INSTANCEOF: 'INSTANCEOF',
+  DELETE: 'DELETE',
+  
   // Operators
   PLUS: 'PLUS',
   MINUS: 'MINUS',
@@ -36,12 +68,32 @@ const TokenType = {
   PERCENT: 'PERCENT',
   POWER: 'POWER',
   ASSIGN: 'ASSIGN',
+  PLUS_ASSIGN: 'PLUS_ASSIGN',
+  MINUS_ASSIGN: 'MINUS_ASSIGN',
+  STAR_ASSIGN: 'STAR_ASSIGN',
+  SLASH_ASSIGN: 'SLASH_ASSIGN',
+  PERCENT_ASSIGN: 'PERCENT_ASSIGN',
+  INCREMENT: 'INCREMENT',
+  DECREMENT: 'DECREMENT',
   EQ: 'EQ',
   NEQ: 'NEQ',
   LT: 'LT',
   GT: 'GT',
   LTE: 'LTE',
   GTE: 'GTE',
+  ARROW: 'ARROW',
+  SPREAD: 'SPREAD',
+  QUESTION: 'QUESTION',
+  NULLISH: 'NULLISH',
+  OPTIONAL_CHAIN: 'OPTIONAL_CHAIN',
+  PIPE: 'PIPE',
+  AMPERSAND: 'AMPERSAND',
+  BITWISE_AND: 'BITWISE_AND',
+  BITWISE_OR: 'BITWISE_OR',
+  BITWISE_XOR: 'BITWISE_XOR',
+  BITWISE_NOT: 'BITWISE_NOT',
+  LEFT_SHIFT: 'LEFT_SHIFT',
+  RIGHT_SHIFT: 'RIGHT_SHIFT',
   
   // Delimiters
   LPAREN: 'LPAREN',
@@ -53,6 +105,7 @@ const TokenType = {
   COMMA: 'COMMA',
   DOT: 'DOT',
   COLON: 'COLON',
+  SEMICOLON: 'SEMICOLON',
   NEWLINE: 'NEWLINE',
   
   EOF: 'EOF'
@@ -60,13 +113,20 @@ const TokenType = {
 
 const KEYWORDS = {
   'let': TokenType.LET,
+  'const': TokenType.CONST,
   'fn': TokenType.FN,
+  'function': TokenType.FN,
   'if': TokenType.IF,
   'else': TokenType.ELSE,
   'loop': TokenType.LOOP,
+  'for': TokenType.FOR,
   'while': TokenType.WHILE,
+  'do': TokenType.DO,
+  'in': TokenType.IN,
+  'of': TokenType.OF,
   'from': TokenType.FROM,
   'to': TokenType.TO,
+  'step': TokenType.STEP,
   'return': TokenType.RETURN,
   'print': TokenType.PRINT,
   'input': TokenType.INPUT,
@@ -77,7 +137,34 @@ const KEYWORDS = {
   'not': TokenType.NOT,
   'break': TokenType.BREAK,
   'continue': TokenType.CONTINUE,
-  'null': TokenType.NULL
+  'null': TokenType.NULL,
+  'nil': TokenType.NULL,
+  'none': TokenType.NULL,
+  
+  // New keywords
+  'class': TokenType.CLASS,
+  'extends': TokenType.EXTENDS,
+  'new': TokenType.NEW,
+  'this': TokenType.THIS,
+  'self': TokenType.SELF,
+  'super': TokenType.SUPER,
+  'static': TokenType.STATIC,
+  'try': TokenType.TRY,
+  'catch': TokenType.CATCH,
+  'finally': TokenType.FINALLY,
+  'throw': TokenType.THROW,
+  'switch': TokenType.SWITCH,
+  'match': TokenType.MATCH,
+  'case': TokenType.CASE,
+  'default': TokenType.DEFAULT,
+  'async': TokenType.ASYNC,
+  'await': TokenType.AWAIT,
+  'import': TokenType.IMPORT,
+  'export': TokenType.EXPORT,
+  'as': TokenType.AS,
+  'typeof': TokenType.TYPEOF,
+  'instanceof': TokenType.INSTANCEOF,
+  'delete': TokenType.DELETE
 };
 
 class Token {
@@ -117,13 +204,49 @@ class Lexer {
       case '[': this.addToken(TokenType.LBRACKET, '['); break;
       case ']': this.addToken(TokenType.RBRACKET, ']'); break;
       case ',': this.addToken(TokenType.COMMA, ','); break;
-      case '.': this.addToken(TokenType.DOT, '.'); break;
+      case ';': this.addToken(TokenType.SEMICOLON, ';'); break;
       case ':': this.addToken(TokenType.COLON, ':'); break;
-      case '+': this.addToken(TokenType.PLUS, '+'); break;
-      case '-': this.addToken(TokenType.MINUS, '-'); break;
+      case '~': this.addToken(TokenType.BITWISE_NOT, '~'); break;
+      case '^': this.addToken(TokenType.BITWISE_XOR, '^'); break;
+      case '?':
+        if (this.match('?')) {
+          this.addToken(TokenType.NULLISH, '??');
+        } else if (this.match('.')) {
+          this.addToken(TokenType.OPTIONAL_CHAIN, '?.');
+        } else {
+          this.addToken(TokenType.QUESTION, '?');
+        }
+        break;
+      case '.':
+        if (this.match('.') && this.match('.')) {
+          this.addToken(TokenType.SPREAD, '...');
+        } else {
+          this.addToken(TokenType.DOT, '.');
+        }
+        break;
+      case '+':
+        if (this.match('+')) {
+          this.addToken(TokenType.INCREMENT, '++');
+        } else if (this.match('=')) {
+          this.addToken(TokenType.PLUS_ASSIGN, '+=');
+        } else {
+          this.addToken(TokenType.PLUS, '+');
+        }
+        break;
+      case '-':
+        if (this.match('-')) {
+          this.addToken(TokenType.DECREMENT, '--');
+        } else if (this.match('=')) {
+          this.addToken(TokenType.MINUS_ASSIGN, '-=');
+        } else {
+          this.addToken(TokenType.MINUS, '-');
+        }
+        break;
       case '*': 
         if (this.match('*')) {
           this.addToken(TokenType.POWER, '**');
+        } else if (this.match('=')) {
+          this.addToken(TokenType.STAR_ASSIGN, '*=');
         } else {
           this.addToken(TokenType.STAR, '*');
         }
@@ -134,34 +257,86 @@ class Lexer {
           while (this.peek() !== '\n' && !this.isAtEnd()) {
             this.advance();
           }
+        } else if (this.match('*')) {
+          // Multi-line comment
+          while (!this.isAtEnd()) {
+            if (this.peek() === '*' && this.peekNext() === '/') {
+              this.advance();
+              this.advance();
+              break;
+            }
+            if (this.peek() === '\n') {
+              this.line++;
+              this.column = 0;
+            }
+            this.advance();
+          }
+        } else if (this.match('=')) {
+          this.addToken(TokenType.SLASH_ASSIGN, '/=');
         } else {
           this.addToken(TokenType.SLASH, '/');
         }
         break;
-      case '%': this.addToken(TokenType.PERCENT, '%'); break;
+      case '%':
+        if (this.match('=')) {
+          this.addToken(TokenType.PERCENT_ASSIGN, '%=');
+        } else {
+          this.addToken(TokenType.PERCENT, '%');
+        }
+        break;
+      case '&':
+        if (this.match('&')) {
+          this.addToken(TokenType.AND, '&&');
+        } else {
+          this.addToken(TokenType.BITWISE_AND, '&');
+        }
+        break;
+      case '|':
+        if (this.match('|')) {
+          this.addToken(TokenType.OR, '||');
+        } else if (this.match('>')) {
+          this.addToken(TokenType.PIPE, '|>');
+        } else {
+          this.addToken(TokenType.BITWISE_OR, '|');
+        }
+        break;
       case '=':
         if (this.match('=')) {
-          this.addToken(TokenType.EQ, '==');
+          if (this.match('=')) {
+            this.addToken(TokenType.EQ, '===');
+          } else {
+            this.addToken(TokenType.EQ, '==');
+          }
+        } else if (this.match('>')) {
+          this.addToken(TokenType.ARROW, '=>');
         } else {
           this.addToken(TokenType.ASSIGN, '=');
         }
         break;
       case '!':
         if (this.match('=')) {
-          this.addToken(TokenType.NEQ, '!=');
+          if (this.match('=')) {
+            this.addToken(TokenType.NEQ, '!==');
+          } else {
+            this.addToken(TokenType.NEQ, '!=');
+          }
         } else {
           this.addToken(TokenType.NOT, '!');
         }
         break;
       case '<':
-        if (this.match('=')) {
+        if (this.match('<')) {
+          this.addToken(TokenType.LEFT_SHIFT, '<<');
+        } else if (this.match('=')) {
           this.addToken(TokenType.LTE, '<=');
         } else {
           this.addToken(TokenType.LT, '<');
         }
         break;
       case '>':
-        if (this.match('=')) {
+        if (this.match('>')) {
+          this.addToken(TokenType.RIGHT_SHIFT, '>>');
+        } else if (this.match('=')) {
           this.addToken(TokenType.GTE, '>=');
         } else {
           this.addToken(TokenType.GT, '>');
@@ -170,6 +345,15 @@ class Lexer {
       case '"':
       case "'":
         this.string(char);
+        break;
+      case '`':
+        this.templateString();
+        break;
+      case '#':
+        // Hash comment - skip until end of line
+        while (this.peek() !== '\n' && !this.isAtEnd()) {
+          this.advance();
+        }
         break;
       case '\n':
         this.addToken(TokenType.NEWLINE, '\n');
@@ -192,6 +376,67 @@ class Lexer {
     }
   }
 
+  templateString() {
+    let value = '';
+    let parts = [];
+    let currentStr = '';
+    
+    while (this.peek() !== '`' && !this.isAtEnd()) {
+      if (this.peek() === '\n') {
+        this.line++;
+        this.column = 0;
+        currentStr += '\n';
+        this.advance();
+      } else if (this.peek() === '$' && this.peekNext() === '{') {
+        // Template interpolation
+        if (currentStr) {
+          parts.push({ type: 'string', value: currentStr });
+          currentStr = '';
+        }
+        this.advance(); // $
+        this.advance(); // {
+        
+        // Collect expression until }
+        let expr = '';
+        let braceCount = 1;
+        while (braceCount > 0 && !this.isAtEnd()) {
+          if (this.peek() === '{') braceCount++;
+          if (this.peek() === '}') braceCount--;
+          if (braceCount > 0) {
+            expr += this.advance();
+          }
+        }
+        this.advance(); // }
+        parts.push({ type: 'expr', value: expr });
+      } else if (this.peek() === '\\') {
+        this.advance();
+        const escaped = this.advance();
+        switch (escaped) {
+          case 'n': currentStr += '\n'; break;
+          case 't': currentStr += '\t'; break;
+          case 'r': currentStr += '\r'; break;
+          case '\\': currentStr += '\\'; break;
+          case '`': currentStr += '`'; break;
+          case '$': currentStr += '$'; break;
+          default: currentStr += escaped;
+        }
+      } else {
+        currentStr += this.advance();
+      }
+    }
+    
+    if (this.isAtEnd()) {
+      throw new Error(`Unterminated template string at line ${this.line}`);
+    }
+    this.advance(); // Closing `
+    
+    if (currentStr) {
+      parts.push({ type: 'string', value: currentStr });
+    }
+    
+    this.addToken(TokenType.TEMPLATE_STRING, parts);
+  }
+
   string(quote) {
     let value = '';
     while (this.peek() !== quote && !this.isAtEnd()) {
@@ -209,6 +454,19 @@ class Lexer {
           case '\\': value += '\\'; break;
           case '"': value += '"'; break;
           case "'": value += "'"; break;
+          case '0': value += '\0'; break;
+          case 'x': {
+            // Hex escape \xNN
+            const hex = this.advance() + this.advance();
+            value += String.fromCharCode(parseInt(hex, 16));
+            break;
+          }
+          case 'u': {
+            // Unicode escape \uNNNN
+            const unicode = this.advance() + this.advance() + this.advance() + this.advance();
+            value += String.fromCharCode(parseInt(unicode, 16));
+            break;
+          }
           default: value += escaped;
         }
       } else {
@@ -224,11 +482,50 @@ class Lexer {
 
   number(first) {
     let value = first;
-    while (this.isDigit(this.peek())) {
-      value += this.advance();
+    
+    // Check for hex, binary, octal
+    if (first === '0') {
+      if (this.peek() === 'x' || this.peek() === 'X') {
+        value += this.advance();
+        while (this.isHexDigit(this.peek())) {
+          value += this.advance();
+        }
+        this.addToken(TokenType.NUMBER, parseInt(value, 16));
+        return;
+      } else if (this.peek() === 'b' || this.peek() === 'B') {
+        value += this.advance();
+        while (this.peek() === '0' || this.peek() === '1') {
+          value += this.advance();
+        }
+        this.addToken(TokenType.NUMBER, parseInt(value.slice(2), 2));
+        return;
+      } else if (this.peek() === 'o' || this.peek() === 'O') {
+        value += this.advance();
+        while (this.peek() >= '0' && this.peek() <= '7') {
+          value += this.advance();
+        }
+        this.addToken(TokenType.NUMBER, parseInt(value.slice(2), 8));
+        return;
+      }
+    }
+    
+    while (this.isDigit(this.peek()) || this.peek() === '_') {
+      if (this.peek() !== '_') value += this.advance();
+      else this.advance();
     }
     if (this.peek() === '.' && this.isDigit(this.peekNext())) {
       value += this.advance(); // .
+      while (this.isDigit(this.peek()) || this.peek() === '_') {
+        if (this.peek() !== '_') value += this.advance();
+        else this.advance();
+      }
+    }
+    // Scientific notation
+    if (this.peek() === 'e' || this.peek() === 'E') {
+      value += this.advance();
+      if (this.peek() === '+' || this.peek() === '-') {
+        value += this.advance();
+      }
       while (this.isDigit(this.peek())) {
         value += this.advance();
       }
@@ -236,12 +533,16 @@ class Lexer {
     this.addToken(TokenType.NUMBER, parseFloat(value));
   }
 
+  isHexDigit(char) {
+    return this.isDigit(char) || (char >= 'a' && char <= 'f') || (char >= 'A' && char <= 'F');
+  }
+
   identifier(first) {
     let value = first;
     while (this.isAlphaNumeric(this.peek())) {
       value += this.advance();
     }
-    const type = KEYWORDS[value] || TokenType.IDENTIFIER;
+    const type = Object.prototype.hasOwnProperty.call(KEYWORDS, value) ? KEYWORDS[value] : TokenType.IDENTIFIER;
     this.addToken(type, value);
   }
 

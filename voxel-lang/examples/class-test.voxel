@@ -1,0 +1,40 @@
+// Test classes in VoxelScript
+
+class Person {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+  
+  greet() {
+    return 'Hello, I am ' + this.name
+  }
+  
+  birthday() {
+    this.age = this.age + 1
+    return this.age
+  }
+}
+
+class Employee extends Person {
+  constructor(name, age, job) {
+    this.name = name
+    this.age = age
+    this.job = job
+  }
+  
+  greet() {
+    return 'Hello, I am ' + this.name + ' and I work as a ' + this.job
+  }
+}
+
+// Test basic class
+let p = new Person('Alice', 30)
+print(p.greet())
+print('Age: ' + p.age)
+print('After birthday: ' + p.birthday())
+
+// Test inheritance
+let e = new Employee('Bob', 25, 'Developer')
+print(e.greet())
+print('Employee age: ' + e.age)

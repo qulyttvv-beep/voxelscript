@@ -1,0 +1,277 @@
+// VoxelScript - All New Features Demo
+// Tests: classes, arrow functions, spread, destructuring, try-catch, switch, etc.
+
+print('=== VoxelScript Enhanced Features Demo ===')
+print('')
+
+// ===============================
+// 1. CONST declarations
+// ===============================
+print('1. Const declarations:')
+const PI = 3.14159
+const APP_NAME = 'VoxelScript'
+print('PI = ' + PI)
+print('APP_NAME = ' + APP_NAME)
+print('')
+
+// ===============================
+// 2. Template strings
+// ===============================
+print('2. Template strings:')
+let name = 'World'
+let greeting = `Hello, ${name}!`
+print(greeting)
+let calc = `2 + 2 = ${2 + 2}`
+print(calc)
+print('')
+
+// ===============================
+// 3. Arrow functions
+// ===============================
+print('3. Arrow functions:')
+let add = (a, b) => a + b
+print('add(5, 3) = ' + add(5, 3))
+
+let square = x => x * x
+print('square(4) = ' + square(4))
+
+let greet2 = () => 'Hello!'
+print('greet2() = ' + greet2())
+print('')
+
+// ===============================
+// 4. Default parameters
+// ===============================
+print('4. Default parameters:')
+fn greetWithDefault(name = 'Guest') {
+  return 'Hello, ' + name + '!'
+}
+print(greetWithDefault())
+print(greetWithDefault('Alice'))
+print('')
+
+// ===============================
+// 5. Rest parameters
+// ===============================
+print('5. Rest parameters:')
+fn sumAll(...numbers) {
+  let total = 0
+  loop i in numbers {
+    total = total + i
+  }
+  return total
+}
+print('sumAll(1, 2, 3, 4, 5) = ' + sumAll(1, 2, 3, 4, 5))
+print('')
+
+// ===============================
+// 6. Spread operator
+// ===============================
+print('6. Spread operator:')
+let arr1 = [1, 2, 3]
+let arr2 = [4, 5, 6]
+let combined = [...arr1, ...arr2]
+print('combined = ' + combined)
+
+let obj1 = {a: 1, b: 2}
+let obj2 = {c: 3, ...obj1}
+print('obj2.a = ' + obj2.a)
+print('')
+
+// ===============================
+// 7. Destructuring
+// ===============================
+print('7. Destructuring:')
+let [first, second, ...rest] = [1, 2, 3, 4, 5]
+print('first = ' + first)
+print('second = ' + second)
+print('rest = ' + rest)
+
+let {x, y} = {x: 10, y: 20, z: 30}
+print('x = ' + x + ', y = ' + y)
+print('')
+
+// ===============================
+// 8. Classes
+// ===============================
+print('8. Classes:')
+class Animal {
+  constructor(name) {
+    this.name = name
+  }
+  
+  speak() {
+    return this.name + ' makes a sound'
+  }
+}
+
+class Dog extends Animal {
+  constructor(name, breed) {
+    this.name = name
+    this.breed = breed
+  }
+  
+  speak() {
+    return this.name + ' barks!'
+  }
+  
+  getInfo() {
+    return this.name + ' is a ' + this.breed
+  }
+}
+
+let dog = new Dog('Rex', 'German Shepherd')
+print(dog.speak())
+print(dog.getInfo())
+print('')
+
+// ===============================
+// 9. Ternary operator
+// ===============================
+print('9. Ternary operator:')
+let age = 20
+let status = age >= 18 ? 'adult' : 'minor'
+print('age 20 status: ' + status)
+print('')
+
+// ===============================
+// 10. Nullish coalescing
+// ===============================
+print('10. Nullish coalescing:')
+let value = null
+let result = value ?? 'default'
+print('null ?? default = ' + result)
+let value2 = 'actual'
+let result2 = value2 ?? 'default'
+print('actual ?? default = ' + result2)
+print('')
+
+// ===============================
+// 11. Optional chaining
+// ===============================
+print('11. Optional chaining:')
+let user = {profile: {name: 'Alice'}}
+print('user?.profile?.name = ' + user?.profile?.name)
+let empty = null
+print('empty?.something = ' + empty?.something)
+print('')
+
+// ===============================
+// 12. Try-catch-finally
+// ===============================
+print('12. Try-catch-finally:')
+try {
+  throw 'Custom error!'
+} catch(e) {
+  print('Caught: ' + e)
+} finally {
+  print('Finally block executed')
+}
+print('')
+
+// ===============================
+// 13. Switch/Match
+// ===============================
+print('13. Switch/Match:')
+let day = 3
+switch day {
+  case 1:
+    print('Monday')
+    break
+  case 2:
+    print('Tuesday')
+    break
+  case 3:
+    print('Wednesday')
+    break
+  default:
+    print('Other day')
+}
+print('')
+
+// ===============================
+// 14. For-in and For-of loops
+// ===============================
+print('14. For-in and For-of loops:')
+let fruits = ['apple', 'banana', 'cherry']
+print('For-of (values):')
+loop fruit in fruits {
+  print('  ' + fruit)
+}
+print('')
+
+// ===============================
+// 15. Increment/Decrement
+// ===============================
+print('15. Increment/Decrement:')
+let counter = 5
+print('counter = ' + counter)
+counter++
+print('After counter++: ' + counter)
+counter--
+print('After counter--: ' + counter)
+print('')
+
+// ===============================
+// 16. Compound assignment
+// ===============================
+print('16. Compound assignment:')
+let num = 10
+num += 5
+print('10 += 5 = ' + num)
+num -= 3
+print('-= 3 = ' + num)
+num *= 2
+print('*= 2 = ' + num)
+num /= 4
+print('/= 4 = ' + num)
+print('')
+
+// ===============================
+// 17. Bitwise operators
+// ===============================
+print('17. Bitwise operators:')
+print('5 & 3 = ' + (5 & 3))
+print('5 | 3 = ' + (5 | 3))
+print('5 ^ 3 = ' + (5 ^ 3))
+print('5 << 1 = ' + (5 << 1))
+print('5 >> 1 = ' + (5 >> 1))
+print('')
+
+// ===============================
+// 18. typeof
+// ===============================
+print('18. typeof:')
+print('typeof 42 = ' + typeof 42)
+print('typeof "hello" = ' + typeof 'hello')
+print('typeof true = ' + typeof true)
+print('typeof [1,2,3] = ' + typeof [1,2,3])
+print('typeof {a:1} = ' + typeof {a:1})
+print('typeof null = ' + typeof null)
+print('')
+
+// ===============================
+// 19. Pipe operator
+// ===============================
+print('19. Pipe operator:')
+fn double(x) { return x * 2 }
+fn addTen(x) { return x + 10 }
+let piped = 5 |> double |> addTen
+print('5 |> double |> addTen = ' + piped)
+print('')
+
+// ===============================
+// 20. Number literals
+// ===============================
+print('20. Number literals:')
+let hex = 0xFF
+let binary = 0b1010
+let octal = 0o17
+print('0xFF = ' + hex)
+print('0b1010 = ' + binary)
+print('0o17 = ' + octal)
+let scientific = 1.5e3
+print('1.5e3 = ' + scientific)
+print('')
+
+print('=== All Features Tested Successfully! ===')

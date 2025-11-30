@@ -11,11 +11,18 @@ VoxelScript is a modern, dynamically-typed programming language designed for gam
 ### Variables
 ```voxel
 let name = "VoxelScript"
+const PI = 3.14159          // Constants (cannot be reassigned)
 let age = 25
-let pi = 3.14159
 let isAwesome = true
 let items = [1, 2, 3, 4, 5]
 let player = {name: "Hero", health: 100, position: {x: 0, y: 0}}
+```
+
+### Template Strings
+```voxel
+let name = "World"
+let greeting = `Hello, ${name}!`     // Template literals with interpolation
+let math = `2 + 2 = ${2 + 2}`        // Expressions in templates
 ```
 
 ### Functions
@@ -24,12 +31,49 @@ fn greet(name) {
     return "Hello, " + name + "!"
 }
 
-fn add(a, b) {
-    return a + b
+// Default parameters
+fn greetWithDefault(name = "Guest") {
+    return "Hello, " + name + "!"
 }
 
-// Arrow-style functions work too
-let double = fn(x) { return x * 2 }
+// Rest parameters
+fn sumAll(...numbers) {
+    let total = 0
+    loop num in numbers { total += num }
+    return total
+}
+
+// Arrow functions
+let add = (a, b) => a + b
+let square = x => x * x
+let sayHi = () => "Hello!"
+```
+
+### Classes
+```voxel
+class Animal {
+    constructor(name) {
+        this.name = name
+    }
+    
+    speak() {
+        return this.name + " makes a sound"
+    }
+}
+
+class Dog extends Animal {
+    constructor(name, breed) {
+        this.name = name
+        this.breed = breed
+    }
+    
+    speak() {
+        return this.name + " barks!"
+    }
+}
+
+let dog = new Dog("Rex", "German Shepherd")
+print(dog.speak())  // Rex barks!
 ```
 
 ### Control Flow
@@ -43,9 +87,32 @@ if score > 100 {
     print("Keep trying!")
 }
 
+// Ternary operator
+let status = age >= 18 ? "adult" : "minor"
+
+// Switch/Match
+switch day {
+    case 1:
+        print("Monday")
+        break
+    case 2:
+        print("Tuesday")
+        break
+    default:
+        print("Other day")
+}
+
 // Loops
-loop i in range(10) {
+loop i from 0 to 10 {
     print(i)
+}
+
+loop i from 10 to 0 step -1 {
+    print(i)  // Countdown
+}
+
+loop item in items {
+    print(item)  // Iterates over values
 }
 
 // While loops
@@ -53,15 +120,70 @@ while health > 0 {
     // game logic
 }
 
+// Do-while loops
+do {
+    // runs at least once
+} while condition
+
 // Loop controls
 loop item in items {
-    if item == target {
-        break
-    }
-    if item < 0 {
-        continue
-    }
+    if item == target { break }
+    if item < 0 { continue }
 }
+```
+
+### Error Handling
+```voxel
+try {
+    throw "Something went wrong!"
+} catch(error) {
+    print("Error: " + error)
+} finally {
+    print("Cleanup code")
+}
+```
+
+### Destructuring
+```voxel
+// Array destructuring
+let [first, second, ...rest] = [1, 2, 3, 4, 5]
+
+// Object destructuring  
+let {name, age} = {name: "Alice", age: 30}
+
+// With defaults
+let [a = 0, b = 0] = [1]  // a=1, b=0
+```
+
+### Spread Operator
+```voxel
+let arr1 = [1, 2, 3]
+let arr2 = [...arr1, 4, 5]  // [1, 2, 3, 4, 5]
+
+let obj1 = {a: 1}
+let obj2 = {...obj1, b: 2}  // {a: 1, b: 2}
+```
+
+### Modern Operators
+```voxel
+// Nullish coalescing
+let value = null ?? "default"  // "default"
+
+// Optional chaining
+let name = user?.profile?.name  // undefined if any part is null
+
+// Pipe operator
+let result = 5 |> double |> addTen  // Pipes value through functions
+
+// Increment/Decrement
+count++
+count--
+
+// Compound assignment
+x += 5
+x -= 3
+x *= 2
+x /= 4
 ```
 
 ### Print Output

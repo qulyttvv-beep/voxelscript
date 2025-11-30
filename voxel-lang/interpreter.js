@@ -1,4 +1,5 @@
 // VoxelScript Interpreter - Executes the AST
+// Supports: classes, async/await, try-catch, switch, arrow functions, destructuring, spread, and more
 
 const readline = require('readline');
 
@@ -12,16 +13,87 @@ class ReturnValue extends Error {
 
 class BreakLoop extends Error {}
 class ContinueLoop extends Error {}
+class ThrowError extends Error {
+  constructor(value) {
+    super(value?.message || String(value));
+    this.thrownValue = value;
+  }
+}
+
+// VoxelScript Class Instance
+class VoxelInstance {
+  constructor(klass, properties = {}) {
+    this.__class__ = klass;
+    this.__properties__ = { ...properties };
+  }
+  
+  get(name) {
+    if (name in this.__properties__) {
+      return this.__properties__[name];
+    }
+    // Look up in class methods
+    if (this.__class__) {
+      const method = this.__class__.__methods__[name];
+      if (method) {
+        // Bind method to this instance
+        return {
+          __isVoxelFunction: true,
+          params: method.params,
+          body: method.body,
+          closure: method.closure,
+          boundThis: this,
+          isAsync: method.isAsync
+        };
+      }
+      // Look up in parent class
+      if (this.__class__.__parent__) {
+        const parentMethod = this.__class__.__parent__.__methods__[name];
+        if (parentMethod) {
+          return {
+            __isVoxelFunction: true,
+            params: parentMethod.params,
+            body: parentMethod.body,
+            closure: parentMethod.closure,
+            boundThis: this,
+            isAsync: parentMethod.isAsync
+          };
+        }
+      }
+    }
+    return undefined;
+  }
+  
+  set(name, value) {
+    this.__properties__[name] = value;
+  }
+}
+
+// VoxelScript Class
+class VoxelClass {
+  constructor(name, parent, methods, staticMethods, properties, staticProperties) {
+    this.__name__ = name;
+    this.__parent__ = parent;
+    this.__methods__ = methods;
+    this.__staticMethods__ = staticMethods;
+    this.__properties__ = properties;
+    this.__staticProperties__ = staticProperties;
+    this.__isVoxelClass__ = true;
+  }
+}
 
 // Environment for variable scoping
 class Environment {
   constructor(parent = null) {
     this.variables = new Map();
+    this.constants = new Set();
     this.parent = parent;
   }
 
-  define(name, value) {
+  define(name, value, isConst = false) {
     this.variables.set(name, value);
+    if (isConst) {
+      this.constants.add(name);
+    }
   }
 
   get(name) {
@@ -35,6 +107,9 @@ class Environment {
   }
 
   set(name, value) {
+    if (this.constants.has(name)) {
+      throw new Error(`Cannot reassign constant: ${name}`);
+    }
     if (this.variables.has(name)) {
       this.variables.set(name, value);
       return;
@@ -49,6 +124,20 @@ class Environment {
   has(name) {
     if (this.variables.has(name)) return true;
     if (this.parent) return this.parent.has(name);
+    return false;
+  }
+  
+  delete(name) {
+    if (this.constants.has(name)) {
+      throw new Error(`Cannot delete constant: ${name}`);
+    }
+    if (this.variables.has(name)) {
+      this.variables.delete(name);
+      return true;
+    }
+    if (this.parent) {
+      return this.parent.delete(name);
+    }
     return false;
   }
 }
@@ -1211,6 +1300,8 @@ class Interpreter {
     this.environment = this.global;
     this.inputQueue = [];
     this.inputResolver = null;
+    this.currentThis = null;
+    this.modules = new Map();
     
     // Load built-ins
     for (const [name, fn] of Object.entries(builtins)) {
@@ -1234,6 +1325,8 @@ class Interpreter {
   }
 
   async evaluate(node) {
+    if (!node) return null;
+    
     switch (node.type) {
       case 'Program':
         return this.run(node);
@@ -1244,6 +1337,9 @@ class Interpreter {
       case 'StringLiteral':
         return node.value;
         
+      case 'TemplateLiteral':
+        return this.evaluateTemplateLiteral(node);
+        
       case 'BoolLiteral':
         return node.value;
         
@@ -1253,7 +1349,14 @@ class Interpreter {
       case 'ArrayLiteral': {
         const elements = [];
         for (const el of node.elements) {
-          elements.push(await this.evaluate(el));
+          if (el === null) {
+            elements.push(undefined); // Sparse array
+          } else if (el.type === 'SpreadElement') {
+            const spread = await this.evaluate(el.argument);
+            elements.push(...spread);
+          } else {
+            elements.push(await this.evaluate(el));
+          }
         }
         return elements;
       }
@@ -1261,13 +1364,30 @@ class Interpreter {
       case 'ObjectLiteral': {
         const obj = {};
         for (const [key, value] of Object.entries(node.properties)) {
-          obj[key] = await this.evaluate(value);
+          if (key.startsWith('...spread')) {
+            const spread = await this.evaluate(value.argument);
+            Object.assign(obj, spread);
+          } else {
+            obj[key] = await this.evaluate(value);
+          }
         }
         return obj;
       }
+      
+      case 'SpreadElement':
+        return await this.evaluate(node.argument);
         
       case 'Identifier':
         return this.environment.get(node.name);
+        
+      case 'ThisExpr':
+        return this.currentThis;
+        
+      case 'SuperExpr':
+        if (this.currentThis && this.currentThis.__class__?.__parent__) {
+          return this.currentThis.__class__.__parent__;
+        }
+        throw new Error("'super' used outside of class context");
         
       case 'BinaryExpr':
         return this.evaluateBinary(node);
@@ -1275,50 +1395,104 @@ class Interpreter {
       case 'UnaryExpr':
         return this.evaluateUnary(node);
         
+      case 'UpdateExpr':
+        return this.evaluateUpdate(node);
+        
+      case 'TernaryExpr': {
+        const condition = await this.evaluate(node.condition);
+        return condition ? await this.evaluate(node.consequent) : await this.evaluate(node.alternate);
+      }
+        
+      case 'NullishCoalescing': {
+        const left = await this.evaluate(node.left);
+        return (left === null || left === undefined) ? await this.evaluate(node.right) : left;
+      }
+        
+      case 'OptionalChain':
+        return this.evaluateOptionalChain(node);
+        
+      case 'PipeExpr':
+        return this.evaluatePipe(node);
+        
       case 'LetDeclaration': {
         const value = node.value ? await this.evaluate(node.value) : null;
-        this.environment.define(node.name, value);
+        this.environment.define(node.name, value, node.isConst);
         return value;
       }
         
-      case 'Assignment': {
-        const value = await this.evaluate(node.value);
+      case 'DestructuringDeclaration':
+        return this.evaluateDestructuring(node);
         
-        if (node.target.type === 'Identifier') {
-          this.environment.set(node.target.name, value);
-        } else if (node.target.type === 'IndexAccess') {
-          const obj = await this.evaluate(node.target.object);
-          const index = await this.evaluate(node.target.index);
-          obj[index] = value;
-        } else if (node.target.type === 'MemberAccess') {
-          const obj = await this.evaluate(node.target.object);
-          obj[node.target.property] = value;
-        }
-        return value;
-      }
+      case 'Assignment':
+        return this.evaluateAssignment(node);
         
       case 'FunctionDeclaration': {
         const fn = {
           __isVoxelFunction: true,
           params: node.params,
           body: node.body,
-          closure: this.environment
+          closure: this.environment,
+          isAsync: node.isAsync
         };
-        this.environment.define(node.name, fn);
+        if (node.name) {
+          this.environment.define(node.name, fn);
+        }
         return fn;
+      }
+        
+      case 'ArrowFunction': {
+        return {
+          __isVoxelFunction: true,
+          params: node.params,
+          body: node.body,
+          closure: this.environment,
+          isAsync: node.isAsync,
+          boundThis: this.currentThis // Arrow functions capture 'this'
+        };
       }
         
       case 'FunctionCall':
         return this.evaluateCall(node);
         
+      case 'NewExpr':
+        return this.evaluateNew(node);
+        
+      case 'AwaitExpr': {
+        const value = await this.evaluate(node.argument);
+        return value instanceof Promise ? await value : value;
+      }
+        
+      case 'ClassDeclaration':
+        return this.evaluateClass(node);
+        
       case 'IfStatement':
         return this.evaluateIf(node);
+        
+      case 'SwitchStatement':
+        return this.evaluateSwitch(node);
         
       case 'LoopStatement':
         return this.evaluateLoop(node);
         
+      case 'ForInStatement':
+        return this.evaluateForIn(node);
+        
+      case 'ForOfStatement':
+        return this.evaluateForOf(node);
+        
       case 'WhileStatement':
         return this.evaluateWhile(node);
+        
+      case 'DoWhileStatement':
+        return this.evaluateDoWhile(node);
+        
+      case 'TryStatement':
+        return this.evaluateTry(node);
+        
+      case 'ThrowStatement': {
+        const value = await this.evaluate(node.argument);
+        throw new ThrowError(value);
+      }
         
       case 'ReturnStatement': {
         const value = node.value ? await this.evaluate(node.value) : null;
@@ -1340,15 +1514,65 @@ class Interpreter {
       case 'InputExpr':
         return this.evaluateInput(node);
         
+      case 'TypeOfExpr': {
+        const value = await this.evaluate(node.argument);
+        if (value === null) return 'null';
+        if (Array.isArray(value)) return 'array';
+        if (value instanceof VoxelInstance) return 'object';
+        return typeof value;
+      }
+        
+      case 'InstanceOfExpr': {
+        const left = await this.evaluate(node.left);
+        const right = await this.evaluate(node.right);
+        if (left instanceof VoxelInstance && right?.__isVoxelClass__) {
+          let klass = left.__class__;
+          while (klass) {
+            if (klass === right) return true;
+            klass = klass.__parent__;
+          }
+          return false;
+        }
+        return false;
+      }
+        
+      case 'DeleteExpr': {
+        if (node.argument.type === 'MemberAccess') {
+          const obj = await this.evaluate(node.argument.object);
+          delete obj[node.argument.property];
+          return true;
+        }
+        if (node.argument.type === 'IndexAccess') {
+          const obj = await this.evaluate(node.argument.object);
+          const index = await this.evaluate(node.argument.index);
+          delete obj[index];
+          return true;
+        }
+        if (node.argument.type === 'Identifier') {
+          return this.environment.delete(node.argument.name);
+        }
+        return false;
+      }
+        
       case 'IndexAccess': {
         const obj = await this.evaluate(node.object);
         const index = await this.evaluate(node.index);
+        if (obj instanceof VoxelInstance) {
+          return obj.get(index) ?? obj.__properties__[index];
+        }
         return obj[index];
       }
         
       case 'MemberAccess': {
         const obj = await this.evaluate(node.object);
-        return obj[node.property];
+        if (obj instanceof VoxelInstance) {
+          return obj.get(node.property);
+        }
+        if (obj instanceof VoxelClass) {
+          // Static access
+          return obj.__staticProperties__[node.property] ?? obj.__staticMethods__[node.property];
+        }
+        return obj?.[node.property];
       }
         
       case 'Block': {
@@ -1364,10 +1588,407 @@ class Interpreter {
         }
         return result;
       }
+      
+      case 'ImportStatement':
+        return this.evaluateImport(node);
+        
+      case 'ExportStatement':
+        return this.evaluateExport(node);
         
       default:
         throw new Error(`Unknown node type: ${node.type}`);
     }
+  }
+
+  async evaluateTemplateLiteral(node) {
+    let result = '';
+    for (const part of node.parts) {
+      if (part.type === 'string') {
+        result += part.value;
+      } else {
+        result += String(await this.evaluate(part.value));
+      }
+    }
+    return result;
+  }
+
+  async evaluateOptionalChain(node) {
+    const obj = await this.evaluate(node.object);
+    if (obj === null || obj === undefined) {
+      return undefined;
+    }
+    if (node.computed) {
+      const index = await this.evaluate(node.property);
+      return obj[index];
+    }
+    return obj[node.property];
+  }
+
+  async evaluatePipe(node) {
+    const left = await this.evaluate(node.left);
+    const right = await this.evaluate(node.right);
+    
+    if (typeof right === 'function') {
+      return right(left);
+    }
+    if (right && right.__isVoxelFunction) {
+      return this.callVoxelFunction(right, [left]);
+    }
+    throw new Error("Pipe target must be a function");
+  }
+
+  async evaluateDestructuring(node) {
+    const value = await this.evaluate(node.value);
+    
+    if (node.isArray) {
+      // Array destructuring
+      let i = 0;
+      for (const element of node.pattern) {
+        if (!element) {
+          i++;
+          continue;
+        }
+        if (element.type === 'rest') {
+          this.environment.define(element.name, value.slice(i), node.isConst);
+          break;
+        }
+        const val = value[i] !== undefined ? value[i] : (element.default ? await this.evaluate(element.default) : undefined);
+        this.environment.define(element.name, val, node.isConst);
+        i++;
+      }
+    } else {
+      // Object destructuring
+      for (const prop of node.pattern) {
+        if (prop.type === 'rest') {
+          const rest = { ...value };
+          for (const p of node.pattern) {
+            if (p.type === 'property') delete rest[p.key];
+          }
+          this.environment.define(prop.name, rest, node.isConst);
+        } else {
+          const val = value[prop.key] !== undefined ? value[prop.key] : (prop.default ? await this.evaluate(prop.default) : undefined);
+          this.environment.define(prop.name, val, node.isConst);
+        }
+      }
+    }
+    return value;
+  }
+
+  async evaluateAssignment(node) {
+    let value = await this.evaluate(node.value);
+    
+    // Handle compound assignment
+    if (node.operator !== '=') {
+      let current;
+      if (node.target.type === 'Identifier') {
+        current = this.environment.get(node.target.name);
+      } else if (node.target.type === 'IndexAccess') {
+        const obj = await this.evaluate(node.target.object);
+        const index = await this.evaluate(node.target.index);
+        current = obj[index];
+      } else if (node.target.type === 'MemberAccess') {
+        const obj = await this.evaluate(node.target.object);
+        current = obj[node.target.property];
+      }
+      
+      switch (node.operator) {
+        case '+=': value = current + value; break;
+        case '-=': value = current - value; break;
+        case '*=': value = current * value; break;
+        case '/=': value = current / value; break;
+        case '%=': value = current % value; break;
+        case '**=': value = Math.pow(current, value); break;
+        case '&=': value = current & value; break;
+        case '|=': value = current | value; break;
+        case '^=': value = current ^ value; break;
+        case '<<=': value = current << value; break;
+        case '>>=': value = current >> value; break;
+      }
+    }
+    
+    if (node.target.type === 'Identifier') {
+      this.environment.set(node.target.name, value);
+    } else if (node.target.type === 'IndexAccess') {
+      const obj = await this.evaluate(node.target.object);
+      const index = await this.evaluate(node.target.index);
+      obj[index] = value;
+    } else if (node.target.type === 'MemberAccess') {
+      const obj = await this.evaluate(node.target.object);
+      if (obj instanceof VoxelInstance) {
+        obj.set(node.target.property, value);
+      } else {
+        obj[node.target.property] = value;
+      }
+    }
+    return value;
+  }
+
+  async evaluateUpdate(node) {
+    let value;
+    if (node.operand.type === 'Identifier') {
+      value = this.environment.get(node.operand.name);
+    } else if (node.operand.type === 'MemberAccess') {
+      const obj = await this.evaluate(node.operand.object);
+      value = obj[node.operand.property];
+    } else if (node.operand.type === 'IndexAccess') {
+      const obj = await this.evaluate(node.operand.object);
+      const index = await this.evaluate(node.operand.index);
+      value = obj[index];
+    }
+    
+    const newValue = node.operator === '++' ? value + 1 : value - 1;
+    
+    // Store new value
+    if (node.operand.type === 'Identifier') {
+      this.environment.set(node.operand.name, newValue);
+    } else if (node.operand.type === 'MemberAccess') {
+      const obj = await this.evaluate(node.operand.object);
+      obj[node.operand.property] = newValue;
+    } else if (node.operand.type === 'IndexAccess') {
+      const obj = await this.evaluate(node.operand.object);
+      const index = await this.evaluate(node.operand.index);
+      obj[index] = newValue;
+    }
+    
+    return node.prefix ? newValue : value;
+  }
+
+  async evaluateClass(node) {
+    let parentClass = null;
+    if (node.superClass) {
+      parentClass = this.environment.get(node.superClass);
+      if (!parentClass || !parentClass.__isVoxelClass__) {
+        throw new Error(`${node.superClass} is not a class`);
+      }
+    }
+    
+    const methods = {};
+    const staticMethods = {};
+    const properties = {};
+    const staticProperties = {};
+    
+    for (const element of node.body) {
+      if (element.type === 'MethodDefinition') {
+        const method = {
+          __isVoxelFunction: true,
+          params: element.params,
+          body: element.body,
+          closure: this.environment,
+          isAsync: element.isAsync,
+          kind: element.kind
+        };
+        if (element.isStatic) {
+          staticMethods[element.key] = method;
+        } else {
+          methods[element.key] = method;
+        }
+      } else if (element.type === 'PropertyDefinition') {
+        const value = element.value ? await this.evaluate(element.value) : null;
+        if (element.isStatic) {
+          staticProperties[element.key] = value;
+        } else {
+          properties[element.key] = value;
+        }
+      }
+    }
+    
+    const klass = new VoxelClass(node.name, parentClass, methods, staticMethods, properties, staticProperties);
+    this.environment.define(node.name, klass);
+    return klass;
+  }
+
+  async evaluateNew(node) {
+    const klass = await this.evaluate(node.callee);
+    if (!klass || !klass.__isVoxelClass__) {
+      throw new Error("'new' requires a class");
+    }
+    
+    // Create instance with default properties
+    const properties = { ...klass.__properties__ };
+    if (klass.__parent__) {
+      Object.assign(properties, klass.__parent__.__properties__);
+    }
+    const instance = new VoxelInstance(klass, properties);
+    
+    // Call constructor if exists
+    const constructor = klass.__methods__.constructor;
+    if (constructor) {
+      const args = [];
+      for (const arg of node.args) {
+        args.push(await this.evaluate(arg));
+      }
+      
+      const previousThis = this.currentThis;
+      this.currentThis = instance;
+      await this.callVoxelFunction(constructor, args);
+      this.currentThis = previousThis;
+    }
+    
+    return instance;
+  }
+
+  async evaluateSwitch(node) {
+    const discriminant = await this.evaluate(node.discriminant);
+    let matched = false;
+    let result = null;
+    
+    for (const switchCase of node.cases) {
+      if (!matched && switchCase.test !== null) {
+        const test = await this.evaluate(switchCase.test);
+        if (test === discriminant) {
+          matched = true;
+        }
+      }
+      
+      // Default case or matched
+      if (matched || switchCase.test === null) {
+        matched = true;
+        try {
+          for (const stmt of switchCase.consequent) {
+            result = await this.evaluate(stmt);
+          }
+        } catch (error) {
+          if (error instanceof BreakLoop) {
+            return result;
+          }
+          throw error;
+        }
+      }
+    }
+    
+    return result;
+  }
+
+  async evaluateForIn(node) {
+    const iterable = await this.evaluate(node.iterable);
+    const previous = this.environment;
+    
+    try {
+      if (Array.isArray(iterable)) {
+        // For arrays, iterate over values (not indices) - this is VoxelScript style
+        for (const value of iterable) {
+          this.environment = new Environment(previous);
+          this.environment.define(node.variable, value);
+          try {
+            await this.evaluate(node.body);
+          } catch (error) {
+            if (error instanceof BreakLoop) break;
+            if (error instanceof ContinueLoop) continue;
+            throw error;
+          }
+        }
+      } else if (typeof iterable === 'string') {
+        // For strings, iterate over characters
+        for (const char of iterable) {
+          this.environment = new Environment(previous);
+          this.environment.define(node.variable, char);
+          try {
+            await this.evaluate(node.body);
+          } catch (error) {
+            if (error instanceof BreakLoop) break;
+            if (error instanceof ContinueLoop) continue;
+            throw error;
+          }
+        }
+      } else if (typeof iterable === 'object' && iterable !== null) {
+        // For objects, iterate over keys
+        for (const key in iterable) {
+          this.environment = new Environment(previous);
+          this.environment.define(node.variable, key);
+          try {
+            await this.evaluate(node.body);
+          } catch (error) {
+            if (error instanceof BreakLoop) break;
+            if (error instanceof ContinueLoop) continue;
+            throw error;
+          }
+        }
+      }
+    } finally {
+      this.environment = previous;
+    }
+    
+    return null;
+  }
+
+  async evaluateForOf(node) {
+    const iterable = await this.evaluate(node.iterable);
+    const previous = this.environment;
+    
+    try {
+      for (const item of iterable) {
+        this.environment = new Environment(previous);
+        this.environment.define(node.variable, item);
+        try {
+          await this.evaluate(node.body);
+        } catch (error) {
+          if (error instanceof BreakLoop) break;
+          if (error instanceof ContinueLoop) continue;
+          throw error;
+        }
+      }
+    } finally {
+      this.environment = previous;
+    }
+    
+    return null;
+  }
+
+  async evaluateDoWhile(node) {
+    do {
+      try {
+        await this.evaluate(node.body);
+      } catch (error) {
+        if (error instanceof BreakLoop) break;
+        if (error instanceof ContinueLoop) continue;
+        throw error;
+      }
+    } while (await this.evaluate(node.condition));
+    return null;
+  }
+
+  async evaluateTry(node) {
+    try {
+      return await this.evaluate(node.block);
+    } catch (error) {
+      if (node.handler && (error instanceof ThrowError || !(error instanceof ReturnValue || error instanceof BreakLoop || error instanceof ContinueLoop))) {
+        const previous = this.environment;
+        this.environment = new Environment(previous);
+        
+        if (node.handler.param) {
+          const value = error instanceof ThrowError ? error.thrownValue : error.message;
+          this.environment.define(node.handler.param, value);
+        }
+        
+        try {
+          return await this.evaluate(node.handler.body);
+        } finally {
+          this.environment = previous;
+        }
+      }
+      throw error;
+    } finally {
+      if (node.finalizer) {
+        await this.evaluate(node.finalizer);
+      }
+    }
+  }
+
+  async evaluateImport(node) {
+    // For now, just define empty exports
+    // In a real implementation, this would load and execute the module
+    console.warn(`Import not fully implemented: ${node.source}`);
+    for (const spec of node.specifiers) {
+      this.environment.define(spec.local || spec.name, null);
+    }
+    return null;
+  }
+
+  async evaluateExport(node) {
+    if (node.declaration) {
+      return await this.evaluate(node.declaration);
+    }
+    return null;
   }
 
   async evaluateBinary(node) {
@@ -1402,6 +2023,12 @@ class Interpreter {
       case '>': return left > right;
       case '<=': return left <= right;
       case '>=': return left >= right;
+      case '&': return left & right;
+      case '|': return left | right;
+      case '^': return left ^ right;
+      case '<<': return left << right;
+      case '>>': return left >> right;
+      case '>>>': return left >>> right;
       default:
         throw new Error(`Unknown operator: ${node.operator}`);
     }
@@ -1413,6 +2040,7 @@ class Interpreter {
       case '-': return -operand;
       case '!':
       case 'not': return !operand;
+      case '~': return ~operand;
       default:
         throw new Error(`Unknown operator: ${node.operator}`);
     }
@@ -1422,7 +2050,12 @@ class Interpreter {
     const callee = await this.evaluate(node.callee);
     const args = [];
     for (const arg of node.args) {
-      args.push(await this.evaluate(arg));
+      if (arg.type === 'SpreadElement') {
+        const spread = await this.evaluate(arg.argument);
+        args.push(...spread);
+      } else {
+        args.push(await this.evaluate(arg));
+      }
     }
     
     if (typeof callee === 'function') {
@@ -1435,32 +2068,51 @@ class Interpreter {
     }
     
     if (callee && callee.__isVoxelFunction) {
-      // User-defined function
-      const previous = this.environment;
-      this.environment = new Environment(callee.closure);
-      
-      // Bind parameters
-      for (let i = 0; i < callee.params.length; i++) {
-        this.environment.define(callee.params[i], args[i] ?? null);
-      }
-      
-      try {
-        for (const stmt of callee.body.statements) {
-          await this.evaluate(stmt);
-        }
-      } catch (error) {
-        if (error instanceof ReturnValue) {
-          return error.value;
-        }
-        throw error;
-      } finally {
-        this.environment = previous;
-      }
-      
-      return null;
+      return this.callVoxelFunction(callee, args);
     }
     
     throw new Error(`${callee} is not a function`);
+  }
+
+  async callVoxelFunction(fn, args) {
+    const previous = this.environment;
+    this.environment = new Environment(fn.closure);
+    
+    const previousThis = this.currentThis;
+    if (fn.boundThis !== undefined) {
+      this.currentThis = fn.boundThis;
+    }
+    
+    // Bind parameters
+    for (let i = 0; i < fn.params.length; i++) {
+      const param = fn.params[i];
+      if (typeof param === 'string') {
+        // Old-style simple param
+        this.environment.define(param, args[i] ?? null);
+      } else if (param.type === 'rest') {
+        this.environment.define(param.name, args.slice(i));
+        break;
+      } else {
+        const value = args[i] !== undefined ? args[i] : (param.default ? await this.evaluate(param.default) : null);
+        this.environment.define(param.name, value);
+      }
+    }
+    
+    try {
+      for (const stmt of fn.body.statements) {
+        await this.evaluate(stmt);
+      }
+    } catch (error) {
+      if (error instanceof ReturnValue) {
+        return error.value;
+      }
+      throw error;
+    } finally {
+      this.environment = previous;
+      this.currentThis = previousThis;
+    }
+    
+    return null;
   }
 
   async evaluateIf(node) {
@@ -1476,19 +2128,33 @@ class Interpreter {
   async evaluateLoop(node) {
     const from = await this.evaluate(node.from);
     const to = await this.evaluate(node.to);
+    const step = node.step ? await this.evaluate(node.step) : 1;
     
     const previous = this.environment;
     this.environment = new Environment(previous);
     
     try {
-      for (let i = from; i < to; i++) {
-        this.environment.define(node.variable, i);
-        try {
-          await this.evaluate(node.body);
-        } catch (error) {
-          if (error instanceof BreakLoop) break;
-          if (error instanceof ContinueLoop) continue;
-          throw error;
+      if (step > 0) {
+        for (let i = from; i < to; i += step) {
+          this.environment.define(node.variable, i);
+          try {
+            await this.evaluate(node.body);
+          } catch (error) {
+            if (error instanceof BreakLoop) break;
+            if (error instanceof ContinueLoop) continue;
+            throw error;
+          }
+        }
+      } else {
+        for (let i = from; i > to; i += step) {
+          this.environment.define(node.variable, i);
+          try {
+            await this.evaluate(node.body);
+          } catch (error) {
+            if (error instanceof BreakLoop) break;
+            if (error instanceof ContinueLoop) continue;
+            throw error;
+          }
         }
       }
     } finally {
@@ -1528,4 +2194,4 @@ class Interpreter {
   }
 }
 
-module.exports = { Interpreter, Environment };
+module.exports = { Interpreter, Environment, VoxelClass, VoxelInstance };

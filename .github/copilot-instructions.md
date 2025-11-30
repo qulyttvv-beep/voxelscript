@@ -656,9 +656,43 @@ print("Average: " + mean(numbers))
 3. **Loops use `loop` and `in`** - Example: `loop item in array { }`
 4. **Braces are required** - No colon-based blocks like Python
 5. **Semicolons are optional** - Line breaks work as statement terminators
-6. **String concatenation uses `+`** - Template literals not supported
+6. **String concatenation uses `+`** - Template literals ARE supported with backticks
 7. **Array access uses brackets** - `arr[0]`, `obj["key"]`, or `obj.key`
 8. **Return is explicit** - Functions need `return` statement
+9. **Constants use `const` keyword** - Immutable after declaration
+10. **Arrow functions supported** - `let fn = x => x * 2` or `(a, b) => a + b`
+
+## 3D Code Editor
+
+VoxelScript includes an immersive **3D Code Editor** built with Electron and Three.js:
+
+### Features
+- **Floating Code Blocks** - Each line of code is a 3D element floating in space
+- **Lightning Execution** - When code runs, lightning bolts connect executed lines
+- **Chaotic Motion** - Blocks drift, orbit, and rotate independently with varied speeds
+- **Matrix Aesthetics** - Pure black background with neon green/cyan colors
+- **Auto-Updates** - Checks for updates on startup and every 30 minutes
+
+### Running the 3D Editor
+```bash
+cd voxel-lang/editor
+npm install
+npm start
+```
+
+### 3D Editor Controls
+- **Space/Enter** - Execute code (triggers lightning visualization)
+- **Scroll** - Navigate vertically through code
+- **Drag** - Rotate camera around the code
+- **Double-click** - Execute code
+- **3 key** - Toggle full 3D view mode
+- **Escape** - Close 3D window
+
+### Architecture
+- `main.js` - Electron main process with auto-updater
+- `renderer.js` - Main editor UI
+- `view3d-renderer.js` - Three.js 3D visualization
+- IPC communication between windows for code sync and execution
 
 ## Running VoxelScript
 
@@ -671,7 +705,19 @@ voxel -i
 
 # Check version
 voxel --version
+
+# Run code directly
+voxel -e "print 'Hello!'"
 ```
+
+## VS Code Extension
+
+The `voxelscript-vscode` folder contains a full VS Code extension:
+- Syntax highlighting
+- 50+ code snippets
+- Matrix color theme
+- Run with F5
+- Bracket matching
 
 ---
 

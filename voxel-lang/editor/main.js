@@ -433,6 +433,13 @@ ipcMain.on('3d-window-close', () => {
     if (view3DWindow) view3DWindow.close();
 });
 
+// Send run signal to 3D window
+ipcMain.on('run-3d-execution', () => {
+    if (view3DWindow && view3DWindow.webContents) {
+        view3DWindow.webContents.send('run-code');
+    }
+});
+
 // Check for updates manually
 ipcMain.handle('check-for-updates', async () => {
     try {

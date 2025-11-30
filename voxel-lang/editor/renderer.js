@@ -587,6 +587,9 @@ function runCode() {
         startExecutionAnimation();
     }
     
+    // Send run signal to 3D window for lightning effect
+    ipcRenderer.send('run-3d-execution');
+    
     // Use setTimeout to allow UI to update before blocking execution
     setTimeout(async () => {
         try {

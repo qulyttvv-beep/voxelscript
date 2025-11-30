@@ -198,6 +198,114 @@ print(player.name)
 let name = input("What's your name? ")
 ```
 
+## Advanced Features (Most Wanted by Developers)
+
+### Range Expressions
+```voxel
+// Exclusive range (1 to 4)
+let range1 = 1..5        // [1, 2, 3, 4]
+
+// Inclusive range (1 to 5)
+let range2 = 1..=5       // [1, 2, 3, 4, 5]
+
+// Use in loops
+loop i in 1..10 {
+    print(i)
+}
+```
+
+### Enums
+```voxel
+// Basic enum
+enum Color {
+    RED,
+    GREEN,
+    BLUE
+}
+
+// Enum with values
+enum HttpStatus {
+    OK = 200,
+    NOT_FOUND = 404,
+    SERVER_ERROR = 500
+}
+
+print(Color.RED)        // 0
+print(HttpStatus.OK)    // 200
+```
+
+### List Comprehensions
+```voxel
+// Simple comprehension
+let squares = [x * x for x in range(1, 6)]  // [1, 4, 9, 16, 25]
+
+// With filter
+let evens = [x for x in range(1, 11) if x % 2 == 0]  // [2, 4, 6, 8, 10]
+
+// Complex expression
+let items = [1, 2, 3, 4, 5]
+let doubled = [x * 2 for x in items]  // [2, 4, 6, 8, 10]
+```
+
+### String Formatting
+```voxel
+// fmt() - Simple formatting
+let name = "World"
+print(fmt("Hello, {}!", name))  // Hello, World!
+
+// Named placeholders
+print(fmt("Hello, {name}!", {name: "VoxelScript"}))
+
+// format() - With specifiers
+print(format("Pi: {:.2f}", 3.14159))    // Pi: 3.14
+print(format("Hex: {:X}", 255))          // Hex: FF
+print(format("Binary: {:b}", 42))        // Binary: 101010
+print(format("Padded: {:05d}", 42))      // Padded: 00042
+
+// sprintf() - C-style
+print(sprintf("Value: %d, Float: %.2f", 42, 3.14159))
+```
+
+### Assert & Debug
+```voxel
+// Assert with optional message
+let x = 10
+assert x > 0, "x must be positive"
+
+// Debug statement - prints expression and value
+debug x + 5  // [DEBUG] x + 5 = 15
+```
+
+### Type Annotations (Optional)
+```voxel
+// Interface declaration
+interface Printable {
+    toString: string
+}
+
+// Type alias
+typedef Point = {x: number, y: number}
+```
+
+### Async/Await Helpers
+```voxel
+// Promise.all equivalent
+let results = await all([promise1, promise2, promise3])
+
+// Promise.race equivalent
+let first = await race([promise1, promise2])
+
+// Timeout wrapper
+let result = await timeout(slowPromise, 5000, "Timed out!")
+
+// Retry helper
+let data = await retry(fetchData, 3, 1000)  // 3 attempts, 1 second delay
+
+// Debounce and throttle
+let debouncedFn = debounce(myFunc, 300)
+let throttledFn = throttle(myFunc, 1000)
+```
+
 ## Built-in Functions by Category
 
 ### Math (Basic)

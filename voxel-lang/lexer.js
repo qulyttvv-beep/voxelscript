@@ -60,6 +60,26 @@ const TokenType = {
   INSTANCEOF: 'INSTANCEOF',
   DELETE: 'DELETE',
   
+  // Advanced features - Most wanted by developers
+  YIELD: 'YIELD',
+  ENUM: 'ENUM',
+  WHEN: 'WHEN',
+  IS: 'IS',
+  WITH: 'WITH',
+  LAZY: 'LAZY',
+  GET: 'GET',
+  SET: 'SET',
+  PRIVATE: 'PRIVATE',
+  PUBLIC: 'PUBLIC',
+  PROTECTED: 'PROTECTED',
+  ABSTRACT: 'ABSTRACT',
+  INTERFACE: 'INTERFACE',
+  IMPLEMENTS: 'IMPLEMENTS',
+  TYPEDEF: 'TYPEDEF',
+  ASSERT: 'ASSERT',
+  DEBUG: 'DEBUG',
+  WHERE: 'WHERE',
+  
   // Operators
   PLUS: 'PLUS',
   MINUS: 'MINUS',
@@ -73,6 +93,10 @@ const TokenType = {
   STAR_ASSIGN: 'STAR_ASSIGN',
   SLASH_ASSIGN: 'SLASH_ASSIGN',
   PERCENT_ASSIGN: 'PERCENT_ASSIGN',
+  POWER_ASSIGN: 'POWER_ASSIGN',
+  AND_ASSIGN: 'AND_ASSIGN',
+  OR_ASSIGN: 'OR_ASSIGN',
+  NULLISH_ASSIGN: 'NULLISH_ASSIGN',
   INCREMENT: 'INCREMENT',
   DECREMENT: 'DECREMENT',
   EQ: 'EQ',
@@ -82,11 +106,15 @@ const TokenType = {
   LTE: 'LTE',
   GTE: 'GTE',
   ARROW: 'ARROW',
+  FAT_ARROW: 'FAT_ARROW',
   SPREAD: 'SPREAD',
+  RANGE: 'RANGE',
+  RANGE_INCLUSIVE: 'RANGE_INCLUSIVE',
   QUESTION: 'QUESTION',
   NULLISH: 'NULLISH',
   OPTIONAL_CHAIN: 'OPTIONAL_CHAIN',
   PIPE: 'PIPE',
+  COMPOSE: 'COMPOSE',
   AMPERSAND: 'AMPERSAND',
   BITWISE_AND: 'BITWISE_AND',
   BITWISE_OR: 'BITWISE_OR',
@@ -94,6 +122,10 @@ const TokenType = {
   BITWISE_NOT: 'BITWISE_NOT',
   LEFT_SHIFT: 'LEFT_SHIFT',
   RIGHT_SHIFT: 'RIGHT_SHIFT',
+  UNSIGNED_RIGHT_SHIFT: 'UNSIGNED_RIGHT_SHIFT',
+  AT: 'AT',
+  HASH: 'HASH_OP',
+  DOUBLE_COLON: 'DOUBLE_COLON',
   
   // Delimiters
   LPAREN: 'LPAREN',
@@ -164,7 +196,27 @@ const KEYWORDS = {
   'as': TokenType.AS,
   'typeof': TokenType.TYPEOF,
   'instanceof': TokenType.INSTANCEOF,
-  'delete': TokenType.DELETE
+  'delete': TokenType.DELETE,
+  
+  // Advanced features
+  'yield': TokenType.YIELD,
+  'enum': TokenType.ENUM,
+  'when': TokenType.WHEN,
+  'is': TokenType.IS,
+  'with': TokenType.WITH,
+  'lazy': TokenType.LAZY,
+  'get': TokenType.GET,
+  'set': TokenType.SET,
+  'private': TokenType.PRIVATE,
+  'public': TokenType.PUBLIC,
+  'protected': TokenType.PROTECTED,
+  'abstract': TokenType.ABSTRACT,
+  'interface': TokenType.INTERFACE,
+  'implements': TokenType.IMPLEMENTS,
+  'typedef': TokenType.TYPEDEF,
+  'assert': TokenType.ASSERT,
+  'debug': TokenType.DEBUG,
+  'where': TokenType.WHERE
 };
 
 class Token {
@@ -205,12 +257,23 @@ class Lexer {
       case ']': this.addToken(TokenType.RBRACKET, ']'); break;
       case ',': this.addToken(TokenType.COMMA, ','); break;
       case ';': this.addToken(TokenType.SEMICOLON, ';'); break;
-      case ':': this.addToken(TokenType.COLON, ':'); break;
+      case ':': 
+        if (this.match(':')) {
+          this.addToken(TokenType.DOUBLE_COLON, '::');
+        } else {
+          this.addToken(TokenType.COLON, ':');
+        }
+        break;
       case '~': this.addToken(TokenType.BITWISE_NOT, '~'); break;
       case '^': this.addToken(TokenType.BITWISE_XOR, '^'); break;
+      case '@': this.addToken(TokenType.AT, '@'); break;
       case '?':
         if (this.match('?')) {
-          this.addToken(TokenType.NULLISH, '??');
+          if (this.match('=')) {
+            this.addToken(TokenType.NULLISH_ASSIGN, '??=');
+          } else {
+            this.addToken(TokenType.NULLISH, '??');
+          }
         } else if (this.match('.')) {
           this.addToken(TokenType.OPTIONAL_CHAIN, '?.');
         } else {
@@ -218,8 +281,14 @@ class Lexer {
         }
         break;
       case '.':
-        if (this.match('.') && this.match('.')) {
-          this.addToken(TokenType.SPREAD, '...');
+        if (this.match('.')) {
+          if (this.match('.')) {
+            this.addToken(TokenType.SPREAD, '...');
+          } else if (this.match('=')) {
+            this.addToken(TokenType.RANGE_INCLUSIVE, '..=');
+          } else {
+            this.addToken(TokenType.RANGE, '..');
+          }
         } else {
           this.addToken(TokenType.DOT, '.');
         }
@@ -244,7 +313,11 @@ class Lexer {
         break;
       case '*': 
         if (this.match('*')) {
-          this.addToken(TokenType.POWER, '**');
+          if (this.match('=')) {
+            this.addToken(TokenType.POWER_ASSIGN, '**=');
+          } else {
+            this.addToken(TokenType.POWER, '**');
+          }
         } else if (this.match('=')) {
           this.addToken(TokenType.STAR_ASSIGN, '*=');
         } else {
@@ -286,14 +359,22 @@ class Lexer {
         break;
       case '&':
         if (this.match('&')) {
-          this.addToken(TokenType.AND, '&&');
+          if (this.match('=')) {
+            this.addToken(TokenType.AND_ASSIGN, '&&=');
+          } else {
+            this.addToken(TokenType.AND, '&&');
+          }
         } else {
           this.addToken(TokenType.BITWISE_AND, '&');
         }
         break;
       case '|':
         if (this.match('|')) {
-          this.addToken(TokenType.OR, '||');
+          if (this.match('=')) {
+            this.addToken(TokenType.OR_ASSIGN, '||=');
+          } else {
+            this.addToken(TokenType.OR, '||');
+          }
         } else if (this.match('>')) {
           this.addToken(TokenType.PIPE, '|>');
         } else {
@@ -335,7 +416,11 @@ class Lexer {
         break;
       case '>':
         if (this.match('>')) {
-          this.addToken(TokenType.RIGHT_SHIFT, '>>');
+          if (this.match('>')) {
+            this.addToken(TokenType.UNSIGNED_RIGHT_SHIFT, '>>>');
+          } else {
+            this.addToken(TokenType.RIGHT_SHIFT, '>>');
+          }
         } else if (this.match('=')) {
           this.addToken(TokenType.GTE, '>=');
         } else {

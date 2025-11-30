@@ -676,7 +676,7 @@ const builtins = {
   
   // Python itertools style
   chain: (...arrs) => arrs.flat(),
-  repeat: (val, n) => Array(n).fill(val),
+  repeatArr: (val, n) => Array(n).fill(val),  // repeatArr for arrays, repeat for strings
   cycle: (arr, n) => {
     const result = [];
     for (let i = 0; i < n; i++) result.push(arr[i % arr.length]);
@@ -1292,6 +1292,270 @@ const builtins = {
     if (t < 2.5 / 2.75) return 7.5625 * (t -= 2.25 / 2.75) * t + 0.9375;
     return 7.5625 * (t -= 2.625 / 2.75) * t + 0.984375;
   },
+  
+  // =============================================
+  // ASYNC/PROMISE HELPERS (Most wanted)
+  // =============================================
+  
+  // Promise.all equivalent
+  all: async (...promises) => {
+    const arr = Array.isArray(promises[0]) ? promises[0] : promises;
+    return Promise.all(arr);
+  },
+  
+  // Promise.race equivalent
+  race: async (...promises) => {
+    const arr = Array.isArray(promises[0]) ? promises[0] : promises;
+    return Promise.race(arr);
+  },
+  
+  // Promise.any equivalent
+  any: async (...promises) => {
+    const arr = Array.isArray(promises[0]) ? promises[0] : promises;
+    return Promise.any ? Promise.any(arr) : new Promise((resolve, reject) => {
+      let errors = [];
+      arr.forEach((p, i) => {
+        Promise.resolve(p).then(resolve).catch(e => {
+          errors[i] = e;
+          if (errors.length === arr.length) reject(new AggregateError(errors));
+        });
+      });
+    });
+  },
+  
+  // Promise.allSettled equivalent
+  allSettled: async (...promises) => {
+    const arr = Array.isArray(promises[0]) ? promises[0] : promises;
+    return Promise.allSettled(arr);
+  },
+  
+  // Create resolved/rejected promises
+  resolve: (value) => Promise.resolve(value),
+  reject: (reason) => Promise.reject(reason),
+  
+  // Promisify a callback function
+  promisify: (fn) => (...args) => new Promise((resolve, reject) => {
+    fn(...args, (err, result) => err ? reject(err) : resolve(result));
+  }),
+  
+  // Delay/timeout utilities
+  delay: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+  timeout: (promise, ms, message = 'Timeout') => {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
+    ]);
+  },
+  
+  // Retry helper
+  retry: async (fn, maxAttempts = 3, delayMs = 1000) => {
+    let lastError;
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        if (i < maxAttempts - 1) await builtins.delay(delayMs);
+      }
+    }
+    throw lastError;
+  },
+  
+  // Debounce
+  debounce: (fn, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn(...args), wait);
+    };
+  },
+  
+  // Throttle
+  throttle: (fn, limit) => {
+    let inThrottle;
+    return (...args) => {
+      if (!inThrottle) {
+        fn(...args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  },
+  
+  // =============================================
+  // STRING FORMATTING (Python-style f-strings)
+  // =============================================
+  
+  // Format string with named/positional args
+  fmt: (template, ...args) => {
+    // Handle positional: fmt("Hello {}!", "World")
+    // Handle named: fmt("Hello {name}!", {name: "World"})
+    let i = 0;
+    const context = args.length === 1 && typeof args[0] === 'object' ? args[0] : null;
+    return template.replace(/\{(\w*)\}/g, (match, key) => {
+      if (key === '') {
+        return args[i++];
+      }
+      if (context && key in context) {
+        return context[key];
+      }
+      const idx = parseInt(key);
+      if (!isNaN(idx)) {
+        return args[idx];
+      }
+      return match;
+    });
+  },
+  
+  // Format with type specifiers like Python
+  // format("{:.2f}", 3.14159) -> "3.14"
+  // format("{:05d}", 42) -> "00042"
+  format: (template, ...args) => {
+    let i = 0;
+    return template.replace(/\{(\d*)(?::([^}]+))?\}/g, (match, idx, spec) => {
+      const argIndex = idx === '' ? i++ : parseInt(idx);
+      let value = args[argIndex];
+      
+      if (!spec) return String(value);
+      
+      // Parse format spec
+      const specMatch = spec.match(/^([<>^])?(\d+)?(?:\.(\d+))?([dfsxXobe])?$/);
+      if (!specMatch) return String(value);
+      
+      const [, align, width, precision, type] = specMatch;
+      
+      // Apply type conversion
+      switch (type) {
+        case 'd': value = Math.floor(value).toString(); break;
+        case 'f': value = precision ? parseFloat(value).toFixed(parseInt(precision)) : String(parseFloat(value)); break;
+        case 's': value = String(value); break;
+        case 'x': value = Math.floor(value).toString(16); break;
+        case 'X': value = Math.floor(value).toString(16).toUpperCase(); break;
+        case 'o': value = Math.floor(value).toString(8); break;
+        case 'b': value = Math.floor(value).toString(2); break;
+        case 'e': value = parseFloat(value).toExponential(precision ? parseInt(precision) : undefined); break;
+        default: value = String(value);
+      }
+      
+      // Apply width and alignment
+      if (width) {
+        const w = parseInt(width);
+        const fill = width[0] === '0' ? '0' : ' ';
+        switch (align) {
+          case '<': value = value.padEnd(w, fill); break;
+          case '>': value = value.padStart(w, fill); break;
+          case '^': {
+            const padding = w - value.length;
+            const left = Math.floor(padding / 2);
+            value = fill.repeat(left) + value + fill.repeat(padding - left);
+            break;
+          }
+          default: value = fill === '0' ? value.padStart(w, fill) : value.padStart(w, fill);
+        }
+      }
+      
+      return value;
+    });
+  },
+  
+  // Printf-style formatting
+  sprintf: (template, ...args) => {
+    let i = 0;
+    return template.replace(/%([+-])?(\d+)?(?:\.(\d+))?([diouxXeEfFgGcs%])/g, 
+      (match, flags, width, precision, type) => {
+        if (type === '%') return '%';
+        let value = args[i++];
+        
+        switch (type) {
+          case 'd':
+          case 'i': value = Math.floor(value).toString(); break;
+          case 'o': value = Math.floor(value).toString(8); break;
+          case 'x': value = Math.floor(value).toString(16); break;
+          case 'X': value = Math.floor(value).toString(16).toUpperCase(); break;
+          case 'u': value = Math.abs(Math.floor(value)).toString(); break;
+          case 'e': value = parseFloat(value).toExponential(precision ? parseInt(precision) : 6); break;
+          case 'E': value = parseFloat(value).toExponential(precision ? parseInt(precision) : 6).toUpperCase(); break;
+          case 'f':
+          case 'F': value = parseFloat(value).toFixed(precision ? parseInt(precision) : 6); break;
+          case 'g':
+          case 'G': value = parseFloat(value).toPrecision(precision ? parseInt(precision) : 6); break;
+          case 'c': value = String.fromCharCode(value); break;
+          case 's': value = String(value); break;
+        }
+        
+        if (width) {
+          const w = parseInt(width);
+          if (flags?.includes('-')) {
+            value = value.padEnd(w);
+          } else {
+            value = value.padStart(w, width[0] === '0' ? '0' : ' ');
+          }
+        }
+        
+        if (flags?.includes('+') && parseFloat(args[i-1]) >= 0) {
+          value = '+' + value;
+        }
+        
+        return value;
+      }
+    );
+  },
+  
+  // Template literal helper
+  template: (strings, ...values) => {
+    return strings.reduce((result, str, i) => {
+      return result + str + (values[i] !== undefined ? values[i] : '');
+    }, '');
+  },
+  
+  // Regular expression helpers
+  regex: (pattern, flags = '') => new RegExp(pattern, flags),
+  regexTest: (pattern, str, flags = '') => new RegExp(pattern, flags).test(str),
+  regexMatch: (pattern, str, flags = '') => str.match(new RegExp(pattern, flags)),
+  regexReplace: (str, pattern, replacement, flags = 'g') => str.replace(new RegExp(pattern, flags), replacement),
+  regexSplit: (str, pattern, flags = '') => str.split(new RegExp(pattern, flags)),
+  
+  // =============================================
+  // GENERATOR/ITERATOR HELPERS
+  // =============================================
+  
+  // Create an iterator
+  iter: (iterable) => iterable[Symbol.iterator](),
+  
+  // Get next value from iterator
+  next: (iterator) => {
+    const result = iterator.next();
+    return result.done ? null : result.value;
+  },
+  
+  // Take first n elements from iterator
+  take: (iterable, n) => {
+    const result = [];
+    const iter = iterable[Symbol.iterator] ? iterable[Symbol.iterator]() : iterable;
+    for (let i = 0; i < n; i++) {
+      const { value, done } = iter.next();
+      if (done) break;
+      result.push(value);
+    }
+    return result;
+  },
+  
+  // Skip first n elements
+  skip: (iterable, n) => {
+    const arr = Array.from(iterable);
+    return arr.slice(n);
+  },
+  
+  // Infinite counter generator
+  count: function*(start = 0, step = 1) {
+    let i = start;
+    while (true) yield i += step;
+  },
+  
+  // Generate range lazily
+  rangeGen: function*(start, end, step = 1) {
+    for (let i = start; step > 0 ? i < end : i > end; i += step) yield i;
+  },
 };
 
 class Interpreter {
@@ -1594,6 +1858,130 @@ class Interpreter {
         
       case 'ExportStatement':
         return this.evaluateExport(node);
+      
+      // ===== ADVANCED FEATURES =====
+      
+      case 'GeneratorDeclaration': {
+        const gen = {
+          __isVoxelGenerator: true,
+          params: node.params,
+          body: node.body,
+          closure: this.environment
+        };
+        if (node.name) {
+          this.environment.define(node.name, gen);
+        }
+        return gen;
+      }
+      
+      case 'YieldExpr': {
+        // Yield is handled by generator evaluation
+        const value = node.argument ? await this.evaluate(node.argument) : null;
+        return { __yield: true, value, delegate: node.delegate };
+      }
+      
+      case 'EnumDeclaration': {
+        const enumObj = { __isEnum: true, __name: node.name };
+        for (const member of node.members) {
+          enumObj[member.name] = member.value;
+        }
+        // Reverse mapping for numeric enums
+        for (const member of node.members) {
+          if (typeof member.value === 'number') {
+            enumObj[member.value] = member.name;
+          }
+        }
+        Object.freeze(enumObj);
+        this.environment.define(node.name, enumObj);
+        return enumObj;
+      }
+      
+      case 'MatchExpr':
+        return this.evaluateMatch(node);
+      
+      case 'RangeExpr': {
+        const start = await this.evaluate(node.start);
+        const end = await this.evaluate(node.end);
+        const result = [];
+        if (node.inclusive) {
+          for (let i = start; i <= end; i++) result.push(i);
+        } else {
+          for (let i = start; i < end; i++) result.push(i);
+        }
+        return result;
+      }
+      
+      case 'DecoratedDeclaration':
+        return this.evaluateDecorated(node);
+      
+      case 'AssertStatement': {
+        const condition = await this.evaluate(node.condition);
+        if (!condition) {
+          const message = node.message ? await this.evaluate(node.message) : 'Assertion failed';
+          throw new Error(`AssertionError: ${message}`);
+        }
+        return true;
+      }
+      
+      case 'DebugStatement': {
+        const value = await this.evaluate(node.expression);
+        const exprStr = this.getExpressionString(node.expression);
+        console.log(`[DEBUG] ${exprStr} =`, value);
+        return value;
+      }
+      
+      case 'ListComprehension':
+        return this.evaluateListComprehension(node);
+      
+      case 'DictComprehension':
+        return this.evaluateDictComprehension(node);
+      
+      case 'LazyExpr': {
+        // Return a lazy thunk that evaluates on first access
+        const closure = this.environment;
+        const expr = node.expression;
+        const self = this;
+        return {
+          __isLazy: true,
+          __evaluated: false,
+          __value: undefined,
+          force: async function() {
+            if (!this.__evaluated) {
+              const prev = self.environment;
+              self.environment = closure;
+              try {
+                this.__value = await self.evaluate(expr);
+              } finally {
+                self.environment = prev;
+              }
+              this.__evaluated = true;
+            }
+            return this.__value;
+          }
+        };
+      }
+      
+      case 'WithStatement':
+        return this.evaluateWith(node);
+      
+      case 'InterfaceDeclaration': {
+        // Interfaces are compile-time only, just store metadata
+        const iface = { 
+          __isInterface: true, 
+          __name: node.name,
+          __members: node.members,
+          __extends: node.extends 
+        };
+        this.environment.define(node.name, iface);
+        return iface;
+      }
+      
+      case 'TypeAliasDeclaration': {
+        // Type aliases are compile-time only
+        const typeAlias = { __isTypeAlias: true, __name: node.name, __typeDefinition: node.typeDefinition };
+        this.environment.define(node.name, typeAlias);
+        return typeAlias;
+      }
         
       default:
         throw new Error(`Unknown node type: ${node.type}`);
@@ -1989,6 +2377,285 @@ class Interpreter {
       return await this.evaluate(node.declaration);
     }
     return null;
+  }
+
+  // ===== ADVANCED FEATURES EVALUATION =====
+  
+  async evaluateMatch(node) {
+    const value = await this.evaluate(node.discriminant);
+    
+    for (const arm of node.arms) {
+      const matched = await this.matchPattern(value, arm.pattern);
+      
+      if (matched.success) {
+        // Create new environment with bindings
+        const previous = this.environment;
+        this.environment = new Environment(previous);
+        
+        // Add pattern bindings to environment
+        for (const [name, val] of Object.entries(matched.bindings)) {
+          this.environment.define(name, val);
+        }
+        
+        try {
+          // Check guard condition if present
+          if (arm.guard) {
+            const guardResult = await this.evaluate(arm.guard);
+            if (!guardResult) {
+              this.environment = previous;
+              continue;
+            }
+          }
+          
+          // Execute body
+          if (arm.body.type === 'Block') {
+            return await this.evaluate(arm.body);
+          } else {
+            return await this.evaluate(arm.body);
+          }
+        } finally {
+          this.environment = previous;
+        }
+      }
+    }
+    
+    throw new Error('No pattern matched in match expression');
+  }
+  
+  async matchPattern(value, pattern) {
+    const bindings = {};
+    
+    switch (pattern.type) {
+      case 'WildcardPattern':
+        return { success: true, bindings };
+        
+      case 'LiteralPattern': {
+        const patternValue = await this.evaluate(pattern.value);
+        return { success: value === patternValue, bindings };
+      }
+        
+      case 'BindingPattern':
+        bindings[pattern.name] = value;
+        return { success: true, bindings };
+        
+      case 'RangePattern': {
+        const start = await this.evaluate(pattern.start);
+        const end = await this.evaluate(pattern.end);
+        const inRange = pattern.inclusive 
+          ? value >= start && value <= end
+          : value >= start && value < end;
+        return { success: inRange, bindings };
+      }
+        
+      case 'ArrayPattern': {
+        if (!Array.isArray(value)) return { success: false, bindings };
+        
+        for (let i = 0; i < pattern.elements.length; i++) {
+          const elem = pattern.elements[i];
+          if (elem.type === 'rest') {
+            bindings[elem.name] = value.slice(i);
+            return { success: true, bindings };
+          }
+          
+          if (i >= value.length) return { success: false, bindings };
+          
+          const matched = await this.matchPattern(value[i], elem);
+          if (!matched.success) return { success: false, bindings };
+          Object.assign(bindings, matched.bindings);
+        }
+        
+        return { success: true, bindings };
+      }
+        
+      case 'ObjectPattern': {
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+          return { success: false, bindings };
+        }
+        
+        for (const prop of pattern.properties) {
+          if (prop.type === 'rest') {
+            const restKeys = Object.keys(value).filter(k => 
+              !pattern.properties.some(p => p.key === k)
+            );
+            const rest = {};
+            for (const k of restKeys) rest[k] = value[k];
+            bindings[prop.name] = rest;
+          } else {
+            if (!(prop.key in value)) return { success: false, bindings };
+            const matched = await this.matchPattern(value[prop.key], prop.pattern);
+            if (!matched.success) return { success: false, bindings };
+            Object.assign(bindings, matched.bindings);
+          }
+        }
+        
+        return { success: true, bindings };
+      }
+        
+      case 'OrPattern':
+        for (const subPattern of pattern.patterns) {
+          const matched = await this.matchPattern(value, subPattern);
+          if (matched.success) return matched;
+        }
+        return { success: false, bindings };
+        
+      case 'TypePattern': {
+        const typeName = pattern.typeName.toLowerCase();
+        let isType = false;
+        
+        switch (typeName) {
+          case 'number': isType = typeof value === 'number'; break;
+          case 'string': isType = typeof value === 'string'; break;
+          case 'boolean':
+          case 'bool': isType = typeof value === 'boolean'; break;
+          case 'array': isType = Array.isArray(value); break;
+          case 'object': isType = typeof value === 'object' && !Array.isArray(value) && value !== null; break;
+          case 'null': isType = value === null; break;
+          case 'undefined': isType = value === undefined; break;
+          case 'function': isType = typeof value === 'function' || value?.__isVoxelFunction; break;
+          default:
+            // Check for class instance
+            if (value instanceof VoxelInstance) {
+              let klass = value.__class__;
+              while (klass) {
+                if (klass.__name__ === typeName) {
+                  isType = true;
+                  break;
+                }
+                klass = klass.__parent__;
+              }
+            }
+        }
+        
+        return { success: isType, bindings };
+      }
+        
+      default:
+        return { success: false, bindings };
+    }
+  }
+  
+  async evaluateDecorated(node) {
+    let declaration = await this.evaluate(node.declaration);
+    
+    // Apply decorators in reverse order (innermost first)
+    for (let i = node.decorators.length - 1; i >= 0; i--) {
+      const decorator = node.decorators[i];
+      const decoratorFn = this.environment.get(decorator.name);
+      
+      if (!decoratorFn) {
+        throw new Error(`Decorator '${decorator.name}' is not defined`);
+      }
+      
+      const args = [];
+      for (const arg of decorator.args) {
+        args.push(await this.evaluate(arg));
+      }
+      
+      if (typeof decoratorFn === 'function') {
+        declaration = decoratorFn(declaration, ...args);
+      } else if (decoratorFn.__isVoxelFunction) {
+        declaration = await this.callVoxelFunction(decoratorFn, [declaration, ...args]);
+      }
+    }
+    
+    // Re-define with decorated value if it's a named declaration
+    if (node.declaration.name) {
+      this.environment.define(node.declaration.name, declaration);
+    }
+    
+    return declaration;
+  }
+  
+  async evaluateListComprehension(node) {
+    const result = [];
+    const iterable = await this.evaluate(node.iterable);
+    
+    const previous = this.environment;
+    this.environment = new Environment(previous);
+    
+    try {
+      for (const item of iterable) {
+        this.environment.define(node.variable, item);
+        
+        // Check condition if present
+        if (node.condition) {
+          const condResult = await this.evaluate(node.condition);
+          if (!condResult) continue;
+        }
+        
+        result.push(await this.evaluate(node.element));
+      }
+    } finally {
+      this.environment = previous;
+    }
+    
+    return result;
+  }
+  
+  async evaluateDictComprehension(node) {
+    const result = {};
+    const iterable = await this.evaluate(node.iterable);
+    
+    const previous = this.environment;
+    this.environment = new Environment(previous);
+    
+    try {
+      for (const item of iterable) {
+        this.environment.define(node.variable, item);
+        
+        // Check condition if present
+        if (node.condition) {
+          const condResult = await this.evaluate(node.condition);
+          if (!condResult) continue;
+        }
+        
+        const key = await this.evaluate(node.key);
+        const value = await this.evaluate(node.value);
+        result[key] = value;
+      }
+    } finally {
+      this.environment = previous;
+    }
+    
+    return result;
+  }
+  
+  async evaluateWith(node) {
+    const obj = await this.evaluate(node.object);
+    
+    const previous = this.environment;
+    this.environment = new Environment(previous);
+    
+    // Call __enter__ if exists
+    if (obj && typeof obj.__enter__ === 'function') {
+      await obj.__enter__();
+    }
+    
+    if (node.alias) {
+      this.environment.define(node.alias, obj);
+    }
+    
+    try {
+      return await this.evaluate(node.body);
+    } finally {
+      // Call __exit__ if exists
+      if (obj && typeof obj.__exit__ === 'function') {
+        await obj.__exit__();
+      }
+      this.environment = previous;
+    }
+  }
+  
+  getExpressionString(node) {
+    switch (node.type) {
+      case 'Identifier': return node.name;
+      case 'NumberLiteral': return String(node.value);
+      case 'StringLiteral': return `"${node.value}"`;
+      case 'MemberAccess': return `${this.getExpressionString(node.object)}.${node.property}`;
+      case 'IndexAccess': return `${this.getExpressionString(node.object)}[${this.getExpressionString(node.index)}]`;
+      case 'BinaryExpr': return `${this.getExpressionString(node.left)} ${node.operator} ${this.getExpressionString(node.right)}`;
+      default: return '<expression>';
+    }
   }
 
   async evaluateBinary(node) {

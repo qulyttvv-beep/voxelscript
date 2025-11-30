@@ -1,0 +1,223 @@
+// =============================================
+// VoxelScript - Most Wanted Features by Developers
+// Based on Stack Overflow & JetBrains surveys
+// =============================================
+
+print("🚀 Testing Most Wanted Programming Language Features\n")
+
+// =============================================
+// 1. RANGE EXPRESSIONS (Rust/Python style)
+// =============================================
+print("=== Range Expressions ===")
+
+let range1 = 1..5        // Exclusive: [1, 2, 3, 4]
+let range2 = 1..=5       // Inclusive: [1, 2, 3, 4, 5]
+
+print("1..5 (exclusive): " + range1)
+print("1..=5 (inclusive): " + range2)
+
+// Use in loops
+print("Loop with range:")
+loop i in 1..4 {
+    print("  i = " + i)
+}
+
+// =============================================
+// 2. ENUMS (Type-safe constants)
+// =============================================
+print("\n=== Enums ===")
+
+enum Color {
+    RED,
+    GREEN,
+    BLUE,
+    CUSTOM = 100
+}
+
+print("Color.RED = " + Color.RED)
+print("Color.GREEN = " + Color.GREEN)
+print("Color.CUSTOM = " + Color.CUSTOM)
+print("Color[0] = " + Color[0])   // Reverse lookup
+
+enum HttpStatus {
+    OK = 200,
+    NOT_FOUND = 404,
+    SERVER_ERROR = 500
+}
+
+print("HttpStatus.OK = " + HttpStatus.OK)
+print("HttpStatus.NOT_FOUND = " + HttpStatus.NOT_FOUND)
+
+// =============================================
+// 3. LIST COMPREHENSIONS (Python-style)
+// =============================================
+print("\n=== List Comprehensions ===")
+
+// Simple comprehension
+let squares = [x * x for x in range(1, 6)]
+print("Squares: " + squares)
+
+// With condition
+let evens = [x for x in range(1, 11) if x % 2 == 0]
+print("Evens: " + evens)
+
+// Complex expression
+let items = [1, 2, 3, 4, 5]
+let doubled = [x * 2 for x in items]
+print("Doubled: " + doubled)
+
+// =============================================
+// 4. DECORATORS (Metaprogramming)
+// =============================================
+print("\n=== Decorators ===")
+
+// Define a logging decorator
+fn logger(func) {
+    return (...args) => {
+        print("Calling function with args: " + args)
+        let result = func(...args)
+        print("Result: " + result)
+        return result
+    }
+}
+
+// Define a memoization decorator
+fn memoize(func) {
+    let cache = {}
+    return (n) => {
+        if has(cache, str(n)) {
+            return cache[str(n)]
+        }
+        let result = func(n)
+        cache[str(n)] = result
+        return result
+    }
+}
+
+// Apply decorator (manual application)
+fn add(a, b) {
+    return a + b
+}
+
+let loggedAdd = logger(add)
+loggedAdd(2, 3)
+
+// =============================================
+// 5. ASYNC/AWAIT IMPROVEMENTS
+// =============================================
+print("\n=== Async Helpers ===")
+
+// Promise helpers available:
+// - all(...promises)
+// - race(...promises)
+// - allSettled(...promises)
+// - timeout(promise, ms)
+// - retry(fn, attempts, delay)
+// - debounce(fn, wait)
+// - throttle(fn, limit)
+
+print("Promise helpers: all, race, timeout, retry, debounce, throttle")
+
+// =============================================
+// 6. STRING FORMATTING (Python-style)
+// =============================================
+print("\n=== String Formatting ===")
+
+// fmt() - Simple formatting
+let name = "VoxelScript"
+let version = 2.0
+print(fmt("Language: {}, Version: {}", name, version))
+
+// Named placeholders
+print(fmt("Hello, {name}!", {name: "World"}))
+
+// format() - With specifiers
+print(format("Pi: {:.2f}", 3.14159))       // Pi: 3.14
+print(format("Hex: {:X}", 255))             // Hex: FF
+print(format("Binary: {:b}", 42))           // Binary: 101010
+print(format("Padded: {:05d}", 42))         // Padded: 00042
+
+// sprintf() - C-style
+print(sprintf("Value: %d, Float: %.2f", 42, 3.14159))
+
+// =============================================
+// 7. ASSERT & DEBUG STATEMENTS
+// =============================================
+print("\n=== Assert & Debug ===")
+
+let x = 10
+assert x > 0, "x must be positive"
+print("Assertion passed!")
+
+debug x + 5  // Prints: [DEBUG] x + 5 = 15
+
+// =============================================
+// 8. TYPE ANNOTATIONS (Optional)
+// =============================================
+print("\n=== Type Annotations ===")
+
+// Interface declaration (documentation)
+interface Printable {
+    toString: string
+}
+
+// Type alias
+typedef Point = {x: number, y: number}
+
+print("Interfaces and type aliases defined!")
+
+// =============================================
+// 9. SWITCH STATEMENT 
+// =============================================
+print("\n=== Switch Statement ===")
+
+fn getDay(num) {
+    let result = ""
+    switch num {
+        case 1:
+            result = "Monday"
+            break
+        case 2:
+            result = "Tuesday"
+            break
+        case 3:
+            result = "Wednesday"
+            break
+        default:
+            result = "Other day"
+    }
+    return result
+}
+
+print("Day 1: " + getDay(1))
+print("Day 2: " + getDay(2))
+print("Day 7: " + getDay(7))
+
+// =============================================
+// 10. GENERATORS & ITERATORS
+// =============================================
+print("\n=== Generators & Iterators ===")
+
+// Built-in generator helpers
+print("take(range(100), 5): " + take(range(0, 100), 5))
+print("skip(range(10), 3): " + skip(range(0, 10), 3))
+
+// =============================================
+// SUMMARY
+// =============================================
+print("\n" + repeat("=", 50))
+print("✅ All Most Wanted Features Implemented!")
+print(repeat("=", 50))
+print("
+Features from Developer Surveys:
+  ✓ Range Expressions (1..10, 1..=10)
+  ✓ Enums (type-safe constants)
+  ✓ List Comprehensions (Python-style)
+  ✓ Decorators (metaprogramming)
+  ✓ Async Helpers (all, race, timeout, retry)
+  ✓ String Formatting (fmt, format, sprintf)
+  ✓ Assert & Debug statements
+  ✓ Type Annotations (interfaces, type aliases)
+  ✓ Switch statements
+  ✓ Generator/Iterator helpers
+")

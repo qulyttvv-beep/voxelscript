@@ -445,6 +445,262 @@ class Block extends ASTNode {
   }
 }
 
+// ===== ADVANCED FEATURES - Most Wanted by Developers =====
+
+// Generator Functions (yield)
+class GeneratorDeclaration extends ASTNode {
+  constructor(name, params, body) {
+    super('GeneratorDeclaration');
+    this.name = name;
+    this.params = params;
+    this.body = body;
+  }
+}
+
+class YieldExpr extends ASTNode {
+  constructor(argument, delegate = false) {
+    super('YieldExpr');
+    this.argument = argument;
+    this.delegate = delegate; // yield* for delegation
+  }
+}
+
+// Enums
+class EnumDeclaration extends ASTNode {
+  constructor(name, members) {
+    super('EnumDeclaration');
+    this.name = name;
+    this.members = members; // [{name, value}]
+  }
+}
+
+// Pattern Matching with Guards
+class MatchExpr extends ASTNode {
+  constructor(discriminant, arms) {
+    super('MatchExpr');
+    this.discriminant = discriminant;
+    this.arms = arms; // [{pattern, guard, body}]
+  }
+}
+
+class MatchArm extends ASTNode {
+  constructor(pattern, guard, body) {
+    super('MatchArm');
+    this.pattern = pattern;
+    this.guard = guard; // optional 'when' condition
+    this.body = body;
+  }
+}
+
+class WildcardPattern extends ASTNode {
+  constructor() {
+    super('WildcardPattern');
+  }
+}
+
+class LiteralPattern extends ASTNode {
+  constructor(value) {
+    super('LiteralPattern');
+    this.value = value;
+  }
+}
+
+class RangePattern extends ASTNode {
+  constructor(start, end, inclusive = false) {
+    super('RangePattern');
+    this.start = start;
+    this.end = end;
+    this.inclusive = inclusive;
+  }
+}
+
+class ArrayPattern extends ASTNode {
+  constructor(elements) {
+    super('ArrayPattern');
+    this.elements = elements;
+  }
+}
+
+class ObjectPattern extends ASTNode {
+  constructor(properties) {
+    super('ObjectPattern');
+    this.properties = properties;
+  }
+}
+
+class OrPattern extends ASTNode {
+  constructor(patterns) {
+    super('OrPattern');
+    this.patterns = patterns;
+  }
+}
+
+class BindingPattern extends ASTNode {
+  constructor(name) {
+    super('BindingPattern');
+    this.name = name;
+  }
+}
+
+class TypePattern extends ASTNode {
+  constructor(typeName) {
+    super('TypePattern');
+    this.typeName = typeName;
+  }
+}
+
+// Range Expression (1..10, 1..=10)
+class RangeExpr extends ASTNode {
+  constructor(start, end, inclusive = false) {
+    super('RangeExpr');
+    this.start = start;
+    this.end = end;
+    this.inclusive = inclusive;
+  }
+}
+
+// Decorators (@decorator)
+class DecoratorExpr extends ASTNode {
+  constructor(name, args) {
+    super('DecoratorExpr');
+    this.name = name;
+    this.args = args;
+  }
+}
+
+class DecoratedDeclaration extends ASTNode {
+  constructor(decorators, declaration) {
+    super('DecoratedDeclaration');
+    this.decorators = decorators;
+    this.declaration = declaration;
+  }
+}
+
+// Type Annotations (optional typing)
+class TypeAnnotation extends ASTNode {
+  constructor(name, nullable = false, generic = null) {
+    super('TypeAnnotation');
+    this.name = name; // 'string', 'number', 'bool', 'array', 'object', etc.
+    this.nullable = nullable;
+    this.generic = generic; // Array<number>
+  }
+}
+
+class TypedDeclaration extends ASTNode {
+  constructor(name, typeAnnotation, value, isConst = false) {
+    super('TypedDeclaration');
+    this.name = name;
+    this.typeAnnotation = typeAnnotation;
+    this.value = value;
+    this.isConst = isConst;
+  }
+}
+
+// Interface Declaration
+class InterfaceDeclaration extends ASTNode {
+  constructor(name, members, extends_) {
+    super('InterfaceDeclaration');
+    this.name = name;
+    this.members = members;
+    this.extends = extends_;
+  }
+}
+
+// Type Alias
+class TypeAliasDeclaration extends ASTNode {
+  constructor(name, typeDefinition) {
+    super('TypeAliasDeclaration');
+    this.name = name;
+    this.typeDefinition = typeDefinition;
+  }
+}
+
+// Assert Statement
+class AssertStatement extends ASTNode {
+  constructor(condition, message) {
+    super('AssertStatement');
+    this.condition = condition;
+    this.message = message;
+  }
+}
+
+// Debug Statement
+class DebugStatement extends ASTNode {
+  constructor(expression) {
+    super('DebugStatement');
+    this.expression = expression;
+  }
+}
+
+// Comprehension (list/dict)
+class ListComprehension extends ASTNode {
+  constructor(element, variable, iterable, condition) {
+    super('ListComprehension');
+    this.element = element;
+    this.variable = variable;
+    this.iterable = iterable;
+    this.condition = condition; // optional filter
+  }
+}
+
+class DictComprehension extends ASTNode {
+  constructor(key, value, variable, iterable, condition) {
+    super('DictComprehension');
+    this.key = key;
+    this.value = value;
+    this.variable = variable;
+    this.iterable = iterable;
+    this.condition = condition;
+  }
+}
+
+// Lazy Evaluation
+class LazyExpr extends ASTNode {
+  constructor(expression) {
+    super('LazyExpr');
+    this.expression = expression;
+  }
+}
+
+// Method Chaining Support
+class ChainExpr extends ASTNode {
+  constructor(object, calls) {
+    super('ChainExpr');
+    this.object = object;
+    this.calls = calls;
+  }
+}
+
+// Getter/Setter Properties
+class GetterDeclaration extends ASTNode {
+  constructor(name, body, isStatic = false) {
+    super('GetterDeclaration');
+    this.name = name;
+    this.body = body;
+    this.isStatic = isStatic;
+  }
+}
+
+class SetterDeclaration extends ASTNode {
+  constructor(name, param, body, isStatic = false) {
+    super('SetterDeclaration');
+    this.name = name;
+    this.param = param;
+    this.body = body;
+    this.isStatic = isStatic;
+  }
+}
+
+// With Statement (context manager like Python)
+class WithStatement extends ASTNode {
+  constructor(object, alias, body) {
+    super('WithStatement');
+    this.object = object;
+    this.alias = alias;
+    this.body = body;
+  }
+}
+
 // Parser
 class Parser {
   constructor(tokens) {
@@ -462,17 +718,212 @@ class Parser {
   }
 
   declaration() {
+    // Handle decorators
+    if (this.check(TokenType.AT)) {
+      return this.decoratedDeclaration();
+    }
     if (this.match(TokenType.LET)) return this.letDeclaration(false);
     if (this.match(TokenType.CONST)) return this.letDeclaration(true);
     if (this.match(TokenType.FN)) return this.functionDeclaration(false);
     if (this.match(TokenType.ASYNC)) {
-      this.consume(TokenType.FN, "Expected 'fn' after 'async'");
-      return this.functionDeclaration(true);
+      if (this.match(TokenType.FN)) {
+        return this.functionDeclaration(true);
+      }
+      // async generator
+      if (this.check(TokenType.STAR)) {
+        return this.generatorDeclaration(true);
+      }
     }
+    if (this.match(TokenType.STAR)) return this.generatorDeclaration(false);
     if (this.match(TokenType.CLASS)) return this.classDeclaration();
+    if (this.match(TokenType.ENUM)) return this.enumDeclaration();
+    if (this.match(TokenType.INTERFACE)) return this.interfaceDeclaration();
+    if (this.match(TokenType.TYPEDEF)) return this.typeAliasDeclaration();
     if (this.match(TokenType.IMPORT)) return this.importStatement();
     if (this.match(TokenType.EXPORT)) return this.exportStatement();
     return this.statement();
+  }
+
+  // Decorator support (@decorator)
+  decoratedDeclaration() {
+    const decorators = [];
+    while (this.match(TokenType.AT)) {
+      const name = this.consume(TokenType.IDENTIFIER, "Expected decorator name");
+      let args = [];
+      if (this.match(TokenType.LPAREN)) {
+        if (!this.check(TokenType.RPAREN)) {
+          do {
+            args.push(this.expression());
+          } while (this.match(TokenType.COMMA));
+        }
+        this.consume(TokenType.RPAREN, "Expected ')' after decorator arguments");
+      }
+      decorators.push(new DecoratorExpr(name.value, args));
+    }
+    
+    const declaration = this.declaration();
+    return new DecoratedDeclaration(decorators, declaration);
+  }
+
+  // Generator function (fn* or *)
+  generatorDeclaration(isAsync = false) {
+    this.consume(TokenType.FN, "Expected 'fn' after '*'");
+    const name = this.consume(TokenType.IDENTIFIER, "Expected generator name");
+    this.consume(TokenType.LPAREN, "Expected '(' after generator name");
+    const params = this.parseFunctionParams();
+    this.consume(TokenType.RPAREN, "Expected ')' after parameters");
+    this.consume(TokenType.LBRACE, "Expected '{' before generator body");
+    const body = this.block();
+    
+    return new GeneratorDeclaration(name.value, params, body, isAsync);
+  }
+
+  // Enum declaration
+  enumDeclaration() {
+    const name = this.consume(TokenType.IDENTIFIER, "Expected enum name");
+    this.consume(TokenType.LBRACE, "Expected '{' before enum body");
+    
+    const members = [];
+    let autoValue = 0;
+    
+    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+      const memberName = this.consume(TokenType.IDENTIFIER, "Expected enum member name");
+      let value = autoValue;
+      
+      if (this.match(TokenType.ASSIGN)) {
+        const expr = this.expression();
+        if (expr.type === 'NumberLiteral') {
+          value = expr.value;
+          autoValue = value;
+        } else if (expr.type === 'StringLiteral') {
+          value = expr.value;
+        } else {
+          value = expr;
+        }
+      }
+      
+      members.push({ name: memberName.value, value });
+      autoValue++;
+      this.match(TokenType.COMMA);
+    }
+    
+    this.consume(TokenType.RBRACE, "Expected '}' after enum body");
+    return new EnumDeclaration(name.value, members);
+  }
+
+  // Interface declaration
+  interfaceDeclaration() {
+    const name = this.consume(TokenType.IDENTIFIER, "Expected interface name");
+    let extends_ = null;
+    
+    if (this.match(TokenType.EXTENDS)) {
+      extends_ = [];
+      do {
+        extends_.push(this.consume(TokenType.IDENTIFIER, "Expected interface name").value);
+      } while (this.match(TokenType.COMMA));
+    }
+    
+    this.consume(TokenType.LBRACE, "Expected '{' before interface body");
+    const members = [];
+    
+    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+      const memberName = this.consume(TokenType.IDENTIFIER, "Expected member name");
+      let typeAnnotation = null;
+      
+      if (this.match(TokenType.COLON)) {
+        typeAnnotation = this.parseTypeAnnotation();
+      }
+      
+      if (this.check(TokenType.LPAREN)) {
+        // Method signature
+        this.consume(TokenType.LPAREN, "Expected '('");
+        const params = [];
+        if (!this.check(TokenType.RPAREN)) {
+          do {
+            const paramName = this.consume(TokenType.IDENTIFIER, "Expected parameter name").value;
+            let paramType = null;
+            if (this.match(TokenType.COLON)) {
+              paramType = this.parseTypeAnnotation();
+            }
+            params.push({ name: paramName, type: paramType });
+          } while (this.match(TokenType.COMMA));
+        }
+        this.consume(TokenType.RPAREN, "Expected ')'");
+        let returnType = null;
+        if (this.match(TokenType.COLON)) {
+          returnType = this.parseTypeAnnotation();
+        }
+        members.push({ kind: 'method', name: memberName.value, params, returnType });
+      } else {
+        // Property signature
+        members.push({ kind: 'property', name: memberName.value, type: typeAnnotation });
+      }
+      
+      this.match(TokenType.SEMICOLON);
+      this.match(TokenType.COMMA);
+    }
+    
+    this.consume(TokenType.RBRACE, "Expected '}' after interface body");
+    return new InterfaceDeclaration(name.value, members, extends_);
+  }
+
+  // Type alias
+  typeAliasDeclaration() {
+    const name = this.consume(TokenType.IDENTIFIER, "Expected type name");
+    this.consume(TokenType.ASSIGN, "Expected '=' after type name");
+    const type = this.parseTypeAnnotation();
+    return new TypeAliasDeclaration(name.value, type);
+  }
+
+  // Parse type annotation
+  parseTypeAnnotation() {
+    // Handle object type: {x: number, y: number}
+    if (this.check(TokenType.LBRACE)) {
+      this.advance();
+      const properties = [];
+      while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        const key = this.consume(TokenType.IDENTIFIER, "Expected property name").value;
+        this.consume(TokenType.COLON, "Expected ':' after property name");
+        const type = this.parseTypeAnnotation();
+        properties.push({ key, type });
+        this.match(TokenType.COMMA);
+      }
+      this.consume(TokenType.RBRACE, "Expected '}' after object type");
+      return { kind: 'object', properties };
+    }
+    
+    // Handle array type: number[]
+    if (this.check(TokenType.LBRACKET)) {
+      this.advance();
+      this.consume(TokenType.RBRACKET, "Expected ']' for array type");
+      return { kind: 'array', elementType: null };
+    }
+    
+    let typeName = this.consume(TokenType.IDENTIFIER, "Expected type name").value;
+    let nullable = false;
+    let generic = null;
+    
+    // Check for generic types like Array<number>
+    if (this.match(TokenType.LT)) {
+      generic = this.parseTypeAnnotation();
+      this.consume(TokenType.GT, "Expected '>' after generic type");
+    }
+    
+    // Check for nullable type
+    if (this.match(TokenType.QUESTION)) {
+      nullable = true;
+    }
+    
+    // Union types
+    if (this.match(TokenType.BITWISE_OR)) {
+      const types = [new TypeAnnotation(typeName, nullable, generic)];
+      do {
+        types.push(this.parseTypeAnnotation());
+      } while (this.match(TokenType.BITWISE_OR));
+      return { kind: 'union', types };
+    }
+    
+    return new TypeAnnotation(typeName, nullable, generic);
   }
 
   letDeclaration(isConst) {
@@ -717,7 +1168,7 @@ class Parser {
 
   statement() {
     if (this.match(TokenType.IF)) return this.ifStatement();
-    if (this.match(TokenType.SWITCH) || this.match(TokenType.MATCH)) return this.switchStatement();
+    if (this.match(TokenType.SWITCH) || this.match(TokenType.MATCH)) return this.switchOrMatchStatement();
     if (this.match(TokenType.LOOP)) return this.loopStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
@@ -725,11 +1176,226 @@ class Parser {
     if (this.match(TokenType.TRY)) return this.tryStatement();
     if (this.match(TokenType.THROW)) return this.throwStatement();
     if (this.match(TokenType.RETURN)) return this.returnStatement();
+    if (this.match(TokenType.YIELD)) return this.yieldStatement();
     if (this.match(TokenType.BREAK)) return new BreakStatement();
     if (this.match(TokenType.CONTINUE)) return new ContinueStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.ASSERT)) return this.assertStatement();
+    if (this.match(TokenType.DEBUG)) return this.debugStatement();
+    if (this.match(TokenType.WITH)) return this.withStatement();
     if (this.match(TokenType.LBRACE)) return this.block();
     return this.expressionStatement();
+  }
+
+  // Yield statement/expression
+  yieldStatement() {
+    let delegate = false;
+    if (this.match(TokenType.STAR)) {
+      delegate = true;
+    }
+    let argument = null;
+    if (!this.check(TokenType.RBRACE) && !this.check(TokenType.SEMICOLON) && !this.isAtEnd()) {
+      argument = this.expression();
+    }
+    return new YieldExpr(argument, delegate);
+  }
+
+  // Assert statement
+  assertStatement() {
+    const condition = this.expression();
+    let message = null;
+    if (this.match(TokenType.COMMA)) {
+      message = this.expression();
+    }
+    return new AssertStatement(condition, message);
+  }
+
+  // Debug statement
+  debugStatement() {
+    const expression = this.expression();
+    return new DebugStatement(expression);
+  }
+
+  // With statement (context manager)
+  withStatement() {
+    const object = this.expression();
+    let alias = null;
+    if (this.match(TokenType.AS)) {
+      alias = this.consume(TokenType.IDENTIFIER, "Expected alias name").value;
+    }
+    this.consume(TokenType.LBRACE, "Expected '{' after with expression");
+    const body = this.block();
+    return new WithStatement(object, alias, body);
+  }
+
+  // Switch or Match (pattern matching)
+  switchOrMatchStatement() {
+    const isMatch = this.previous().type === TokenType.MATCH;
+    const discriminant = this.expression();
+    this.consume(TokenType.LBRACE, "Expected '{' before cases");
+    
+    if (isMatch) {
+      return this.matchExpression(discriminant);
+    }
+    
+    const cases = [];
+    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+      if (this.match(TokenType.CASE)) {
+        const test = this.expression();
+        this.consume(TokenType.COLON, "Expected ':' after case");
+        const consequent = [];
+        while (!this.check(TokenType.CASE) && !this.check(TokenType.DEFAULT) && 
+               !this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+          if (this.match(TokenType.BREAK)) {
+            consequent.push(new BreakStatement());
+            break;
+          }
+          consequent.push(this.statement());
+        }
+        cases.push(new SwitchCase(test, consequent));
+      } else if (this.match(TokenType.DEFAULT)) {
+        this.consume(TokenType.COLON, "Expected ':' after default");
+        const consequent = [];
+        while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+          consequent.push(this.statement());
+        }
+        cases.push(new SwitchCase(null, consequent));
+      }
+    }
+    
+    this.consume(TokenType.RBRACE, "Expected '}' after switch body");
+    return new SwitchStatement(discriminant, cases);
+  }
+
+  // Advanced pattern matching
+  matchExpression(discriminant) {
+    const arms = [];
+    
+    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+      const pattern = this.parsePattern();
+      let guard = null;
+      
+      // Optional 'when' guard
+      if (this.match(TokenType.WHEN) || this.match(TokenType.IF)) {
+        guard = this.expression();
+      }
+      
+      this.consume(TokenType.ARROW, "Expected '=>' after pattern");
+      
+      let body;
+      if (this.check(TokenType.LBRACE)) {
+        this.consume(TokenType.LBRACE, "Expected '{'");
+        body = this.block();
+      } else {
+        body = this.expression();
+      }
+      
+      arms.push(new MatchArm(pattern, guard, body));
+      this.match(TokenType.COMMA);
+    }
+    
+    this.consume(TokenType.RBRACE, "Expected '}' after match body");
+    return new MatchExpr(discriminant, arms);
+  }
+
+  // Parse match patterns
+  parsePattern() {
+    // Wildcard pattern (_)
+    if (this.check(TokenType.IDENTIFIER) && this.peek().value === '_') {
+      this.advance();
+      return new WildcardPattern();
+    }
+    
+    // Array pattern
+    if (this.match(TokenType.LBRACKET)) {
+      const elements = [];
+      if (!this.check(TokenType.RBRACKET)) {
+        do {
+          if (this.match(TokenType.SPREAD)) {
+            const name = this.consume(TokenType.IDENTIFIER, "Expected identifier after '...'");
+            elements.push({ type: 'rest', name: name.value });
+          } else {
+            elements.push(this.parsePattern());
+          }
+        } while (this.match(TokenType.COMMA));
+      }
+      this.consume(TokenType.RBRACKET, "Expected ']' after array pattern");
+      return new ArrayPattern(elements);
+    }
+    
+    // Object pattern
+    if (this.match(TokenType.LBRACE)) {
+      const properties = [];
+      if (!this.check(TokenType.RBRACE)) {
+        do {
+          if (this.match(TokenType.SPREAD)) {
+            const name = this.consume(TokenType.IDENTIFIER, "Expected identifier after '...'");
+            properties.push({ type: 'rest', name: name.value });
+          } else {
+            const key = this.consume(TokenType.IDENTIFIER, "Expected property name");
+            let pattern = new BindingPattern(key.value);
+            if (this.match(TokenType.COLON)) {
+              pattern = this.parsePattern();
+            }
+            properties.push({ key: key.value, pattern });
+          }
+        } while (this.match(TokenType.COMMA));
+      }
+      this.consume(TokenType.RBRACE, "Expected '}' after object pattern");
+      return new ObjectPattern(properties);
+    }
+    
+    // Range pattern (1..10 or 1..=10)
+    if (this.check(TokenType.NUMBER)) {
+      const start = this.primary();
+      if (this.match(TokenType.RANGE)) {
+        const end = this.primary();
+        return new RangePattern(start, end, false);
+      } else if (this.match(TokenType.RANGE_INCLUSIVE)) {
+        const end = this.primary();
+        return new RangePattern(start, end, true);
+      }
+      return new LiteralPattern(start);
+    }
+    
+    // String literal pattern
+    if (this.check(TokenType.STRING)) {
+      return new LiteralPattern(this.primary());
+    }
+    
+    // Boolean literal pattern
+    if (this.check(TokenType.TRUE) || this.check(TokenType.FALSE)) {
+      return new LiteralPattern(this.primary());
+    }
+    
+    // Type check pattern (is Type)
+    if (this.match(TokenType.IS)) {
+      const typeName = this.consume(TokenType.IDENTIFIER, "Expected type name");
+      return new TypePattern(typeName.value);
+    }
+    
+    // Or pattern (pattern1 | pattern2)
+    let pattern = this.parseSinglePattern();
+    if (this.check(TokenType.BITWISE_OR)) {
+      const patterns = [pattern];
+      while (this.match(TokenType.BITWISE_OR)) {
+        patterns.push(this.parseSinglePattern());
+      }
+      return new OrPattern(patterns);
+    }
+    
+    return pattern;
+  }
+
+  parseSinglePattern() {
+    if (this.check(TokenType.IDENTIFIER)) {
+      const name = this.advance();
+      return new BindingPattern(name.value);
+    }
+    if (this.check(TokenType.NUMBER) || this.check(TokenType.STRING)) {
+      return new LiteralPattern(this.primary());
+    }
+    throw new Error("Expected pattern");
   }
 
   ifStatement() {
@@ -748,34 +1414,6 @@ class Parser {
     }
     
     return new IfStatement(condition, thenBranch, elseBranch);
-  }
-
-  switchStatement() {
-    const discriminant = this.expression();
-    this.consume(TokenType.LBRACE, "Expected '{' after switch expression");
-    
-    const cases = [];
-    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
-      if (this.match(TokenType.CASE)) {
-        const test = this.expression();
-        this.consume(TokenType.COLON, "Expected ':' after case value");
-        const consequent = [];
-        while (!this.check(TokenType.CASE) && !this.check(TokenType.DEFAULT) && !this.check(TokenType.RBRACE)) {
-          consequent.push(this.declaration());
-        }
-        cases.push(new SwitchCase(test, consequent));
-      } else if (this.match(TokenType.DEFAULT)) {
-        this.consume(TokenType.COLON, "Expected ':' after default");
-        const consequent = [];
-        while (!this.check(TokenType.CASE) && !this.check(TokenType.DEFAULT) && !this.check(TokenType.RBRACE)) {
-          consequent.push(this.declaration());
-        }
-        cases.push(new SwitchCase(null, consequent));
-      }
-    }
-    this.consume(TokenType.RBRACE, "Expected '}' after switch body");
-    
-    return new SwitchStatement(discriminant, cases);
   }
 
   loopStatement() {
@@ -1048,12 +1686,29 @@ class Parser {
   }
 
   shift() {
-    let expr = this.term();
-    while (this.match(TokenType.LEFT_SHIFT, TokenType.RIGHT_SHIFT)) {
+    let expr = this.range();
+    while (this.match(TokenType.LEFT_SHIFT, TokenType.RIGHT_SHIFT, TokenType.UNSIGNED_RIGHT_SHIFT)) {
       const operator = this.previous().value;
-      const right = this.term();
+      const right = this.range();
       expr = new BinaryExpr(expr, operator, right);
     }
+    return expr;
+  }
+
+  // Range expressions (1..10 or 1..=10)
+  range() {
+    let expr = this.term();
+    
+    if (this.match(TokenType.RANGE)) {
+      const end = this.term();
+      return new RangeExpr(expr, end, false);
+    }
+    
+    if (this.match(TokenType.RANGE_INCLUSIVE)) {
+      const end = this.term();
+      return new RangeExpr(expr, end, true);
+    }
+    
     return expr;
   }
 
@@ -1111,6 +1766,18 @@ class Parser {
     if (this.match(TokenType.AWAIT)) {
       const argument = this.unary();
       return new AwaitExpr(argument);
+    }
+    if (this.match(TokenType.YIELD)) {
+      let delegate = false;
+      if (this.match(TokenType.STAR)) {
+        delegate = true;
+      }
+      const argument = this.unary();
+      return new YieldExpr(argument, delegate);
+    }
+    if (this.match(TokenType.LAZY)) {
+      const expression = this.unary();
+      return new LazyExpr(expression);
     }
     if (this.match(TokenType.NEW)) {
       return this.newExpression();
@@ -1250,20 +1917,47 @@ class Parser {
     }
     
     if (this.match(TokenType.LBRACKET)) {
-      const elements = [];
-      if (!this.check(TokenType.RBRACKET)) {
-        do {
-          if (this.match(TokenType.SPREAD)) {
-            elements.push(new SpreadElement(this.expression()));
-          } else if (this.check(TokenType.COMMA)) {
-            elements.push(null); // Sparse array
-          } else {
-            elements.push(this.expression());
-          }
-        } while (this.match(TokenType.COMMA));
+      // Check for empty array
+      if (this.match(TokenType.RBRACKET)) {
+        return new ArrayLiteral([]);
+      }
+      
+      // Check for list comprehension: [x * 2 for x in items]
+      // or [x * 2 for x in items if x > 0]
+      const firstExpr = this.expression();
+      
+      if (this.match(TokenType.FOR)) {
+        // List comprehension
+        const variable = this.consume(TokenType.IDENTIFIER, "Expected variable in comprehension").value;
+        this.consume(TokenType.IN, "Expected 'in' in comprehension");
+        const iterable = this.expression();
+        let condition = null;
+        if (this.match(TokenType.IF)) {
+          condition = this.expression();
+        }
+        this.consume(TokenType.RBRACKET, "Expected ']' after comprehension");
+        return new ListComprehension(firstExpr, variable, iterable, condition);
+      }
+      
+      // Regular array
+      const elements = [firstExpr];
+      while (this.match(TokenType.COMMA)) {
+        if (this.check(TokenType.RBRACKET)) break;
+        if (this.match(TokenType.SPREAD)) {
+          elements.push(new SpreadElement(this.expression()));
+        } else if (this.check(TokenType.COMMA)) {
+          elements.push(null); // Sparse array
+        } else {
+          elements.push(this.expression());
+        }
       }
       this.consume(TokenType.RBRACKET, "Expected ']' after array elements");
       return new ArrayLiteral(elements);
+    }
+
+    if (this.check(TokenType.LBRACKET) && !this.check(TokenType.RBRACKET)) {
+      // Check if empty array first
+      return new ArrayLiteral([]);
     }
     
     if (this.match(TokenType.LBRACE)) {
@@ -1309,14 +2003,14 @@ class Parser {
       
       // Use a safer approach - check if it looks like arrow function params
       // Only try arrow function parsing if we see simple patterns:
-      // () => or (id) => or (id, id) => or (id = expr) =>
+      // () => or (id) => or (id, id) => or (id = expr) => or (...rest) =>
       if (this.check(TokenType.RPAREN)) {
         this.advance();
         if (this.match(TokenType.ARROW)) {
           return this.arrowFunctionBody([], false);
         }
         this.current = start + 1;
-      } else if (this.check(TokenType.IDENTIFIER)) {
+      } else if (this.check(TokenType.IDENTIFIER) || this.check(TokenType.SPREAD)) {
         // Look ahead to see if this could be arrow function params
         const savedPos = this.current;
         let looksLikeArrow = true;
@@ -1522,5 +2216,36 @@ module.exports = {
   DeleteExpr,
   IndexAccess,
   MemberAccess,
-  Block
+  Block,
+  
+  // Advanced features - Most wanted by developers
+  GeneratorDeclaration,
+  YieldExpr,
+  EnumDeclaration,
+  MatchExpr,
+  MatchArm,
+  WildcardPattern,
+  LiteralPattern,
+  RangePattern,
+  ArrayPattern,
+  ObjectPattern,
+  OrPattern,
+  BindingPattern,
+  TypePattern,
+  RangeExpr,
+  DecoratorExpr,
+  DecoratedDeclaration,
+  TypeAnnotation,
+  TypedDeclaration,
+  InterfaceDeclaration,
+  TypeAliasDeclaration,
+  AssertStatement,
+  DebugStatement,
+  ListComprehension,
+  DictComprehension,
+  LazyExpr,
+  ChainExpr,
+  GetterDeclaration,
+  SetterDeclaration,
+  WithStatement
 };
